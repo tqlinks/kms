@@ -20,8 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let questionsAnswered = 0;
     const MAX_QUESTIONS = 99; 
     let currentCaptcha = null;
-    let availableCaptchas = []; // Danh sách các captcha chưa được hỏi trong lượt chơi này
-    let topScores = JSON.parse(localStorage.getItem('maple_top10')) || []; // Load Top 10 từ Local Storage
+    let availableCaptchas = []; 
+    let topScores = JSON.parse(localStorage.getItem('maple_top10')) || []; 
+    
+    // --- Biến Thời gian & Điểm ---
+    let timer; // Biến giữ ID của setInterval
+    let timeLeft = 60;
+    const TIME_LIMIT = 60; // Giới hạn thời gian cho mỗi câu
+    const SCORE_CORRECT = 100; // Điểm cộng khi đúng
+    const SCORE_INCORRECT = -100; // Điểm trừ khi sai
+    const SCORE_TIMEOUT = -100; // Điểm trừ khi hết giờ
 
     // --- Dữ liệu 99 Captcha (Đã nhúng trực tiếp) ---
     const ALL_CAPTCHAS_DATA = [
@@ -74,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '47.gif', answer: '뒷골목의제이엠' },
         { file: '48.gif', answer: '스텐노무쇠' },
         { file: '49.gif', answer: '벨루어벤제롬' },
-        { file: '50.gif', answer: '종자의수하' },
+        { file: '50.gif', answer: '종자의수ha' },
         { file: '51.gif', answer: '올리버겨대스콜' },
         { file: '52.gif', answer: '말수적은' },
         { file: '53.gif', answer: '켈레톤밀리샤' },
@@ -87,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '60.gif', answer: '령이깃든푸' },
         { file: '61.gif', answer: '밀라타우로마' },
         { file: '62.gif', answer: '키누아리솔' },
-        { file: '63.gif', answer: '라솔빙하수토기' },
+        { file: '63.gif', answer: '라솔빙ha수토기' },
         { file: '64.gif', answer: '스타우로마시' },
         { file: '65.gif', answer: '한에르다스' },
         { file: '66.gif', answer: '시그너스' },
@@ -132,13 +140,46 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateScore(change) {
         score += change;
         currentScoreSpan.textContent = score;
-        questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS}`;
+        questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
     }
 
-    // --- 2. Hàm Thiết lập Captcha Ngẫu nhiên ---
+    // --- 2. Hàm Quản lý Đồng hồ đếm ngược ---
+    function startTimer() {
+        clearInterval(timer); // Xóa timer cũ nếu có
+        timeLeft = TIME_LIMIT;
+        
+        // Cập nhật hiển thị thời gian
+        questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
+        
+        timer = setInterval(() => {
+            timeLeft--;
+            questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                handleTimeout(); // Xử lý khi hết giờ
+            }
+        }, 1000); // Cập nhật mỗi 1 giây
+    }
+    
+    // --- Xử lý khi hết giờ ---
+    function handleTimeout() {
+        updateScore(SCORE_TIMEOUT); // Trừ 100 điểm
+        feedbackMessage.textContent = `⏰ HẾT GIỜ! Bạn bị trừ ${-SCORE_TIMEOUT} điểm.`;
+        
+        // Kiểm tra xem còn câu hỏi không để chuyển sang câu tiếp theo
+        if (questionsAnswered < MAX_QUESTIONS) {
+            // Câu này không được tính là trả lời đúng (questionsAnswered không tăng)
+            setTimeout(setRandomCaptcha, 1500); // Đợi 1.5 giây rồi chuyển hình
+        } else {
+            endGame();
+        }
+    }
+
+
+    // --- 3. Hàm Thiết lập Captcha Ngẫu nhiên ---
     function setRandomCaptcha() {
         if (availableCaptchas.length === 0) {
-            // Nếu đã trả lời hết 99 câu hỏi, kết thúc trò chơi
             endGame();
             return;
         }
@@ -151,14 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
         availableCaptchas.splice(randomIndex, 1);
 
         // Gán hình ảnh vào thẻ <img>
-        captchaImage.src = `${currentCaptcha.file}`;
+        captchaImage.src = `img/${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
         captchaInput.value = ''; // Xóa input cũ
         captchaInput.focus();
         feedbackMessage.textContent = 'Hãy nhập đáp án...';
+        
+        startTimer(); // Bắt đầu đếm ngược cho câu hỏi mới
     }
     
-    // --- 3. Hàm Bắt đầu Trò chơi ---
+    // --- 4. Hàm Bắt đầu Trò chơi ---
     btnStart.addEventListener('click', () => {
         if (playerName === 'Khách') {
             alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
@@ -173,28 +216,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         gameArea.classList.remove('hidden');
         top10Area.classList.add('hidden');
-        setRandomCaptcha();
+        setRandomCaptcha(); // Bắt đầu câu hỏi đầu tiên (sẽ gọi startTimer)
     });
 
-    // --- 4. Hàm Lưu Top 10 (Sử dụng Local Storage) ---
+    // --- 5. Hàm Lưu Top 10 (Sử dụng Local Storage) ---
     function saveTopScore(name, finalScore) {
-        if (finalScore <= 0) return; 
+        if (finalScore === 0) return; // Chỉ lưu điểm khác 0
 
         // 1. Thêm điểm mới
         topScores.push({ name: name, score: finalScore, timestamp: Date.now() });
 
-        // 2. Sắp xếp: điểm cao nhất trước, nếu bằng nhau thì người chơi sớm hơn trước
-        topScores.sort((a, b) => {
-            if (b.score !== a.score) {
-                return b.score - a.score;
-            }
-            return a.timestamp - b.timestamp;
-        });
-
-        // 3. Giữ lại Top 10 (lưu lại điểm cao nhất của mỗi người chơi)
+        // 2. Lọc và sắp xếp lại để giữ Top 10 duy nhất
         let uniqueScores = {};
         topScores.forEach(entry => {
-            // Chỉ thêm/cập nhật nếu điểm mới cao hơn hoặc tên chưa tồn tại
             if (!uniqueScores[entry.name] || entry.score > uniqueScores[entry.name].score) {
                 uniqueScores[entry.name] = entry;
             }
@@ -205,51 +239,61 @@ document.addEventListener('DOMContentLoaded', () => {
                             .sort((a, b) => b.score - a.score)
                             .slice(0, 10);
         
-        // 4. Lưu lại vào Local Storage
+        // 3. Lưu lại vào Local Storage
         localStorage.setItem('maple_top10', JSON.stringify(topScores));
     }
     
-    // --- 5. Hàm Kết thúc Trò chơi ---
+    // --- 6. Hàm Kết thúc Trò chơi ---
     function endGame() {
-        alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành 99 câu hỏi với tổng điểm là: ${score}!`);
+        clearInterval(timer); // Dừng timer
+        alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
         
-        // Lưu điểm vào Local Storage
         saveTopScore(playerName, score); 
         
         gameArea.classList.add('hidden');
-        // Tự động hiển thị Top 10 sau khi kết thúc
         displayTop10(); 
     }
 
 
-    // --- 6. Kiểm tra Đáp án ---
+    // --- 7. Kiểm tra Đáp án ---
     btnSubmit.addEventListener('click', () => {
         if (!currentCaptcha) {
              feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
              return;
         }
         
-        const userInput = captchaInput.value.trim(); // Không chuyển đổi chữ hoa/thường cho ký tự Hàn
+        clearInterval(timer); // Dừng timer ngay khi người chơi submit
+        
+        const userInput = captchaInput.value.trim();
         const correctAnswer = currentCaptcha.answer.trim();
 
         if (userInput === correctAnswer) {
             // Đáp án đúng
             questionsAnswered++;
-            updateScore(1); 
-            feedbackMessage.textContent = '✅ Chính xác! +1 Điểm.';
+            
+            // Tính điểm thưởng thời gian
+            const timeBonus = timeLeft; 
+            const totalScoreChange = SCORE_CORRECT + timeBonus;
+            
+            updateScore(totalScoreChange); 
+            feedbackMessage.textContent = `✅ Chính xác! +${SCORE_CORRECT} điểm, +${timeBonus} điểm thưởng thời gian. Tổng cộng: +${totalScoreChange} điểm.`;
             
             if (questionsAnswered < MAX_QUESTIONS) {
-                setTimeout(setRandomCaptcha, 500); // Đợi 0.5 giây rồi chuyển hình
+                setTimeout(setRandomCaptcha, 1000); // Chuyển sang câu tiếp theo
             } else {
                 endGame();
             }
             
         } else {
             // Đáp án sai
-            updateScore(-1); 
-            feedbackMessage.textContent = '❌ Sai rồi! -1 Điểm. Thử lại.';
-            captchaInput.value = ''; // Xóa input để thử lại
+            updateScore(SCORE_INCORRECT); // Trừ 100 điểm
+            feedbackMessage.textContent = `❌ Sai rồi! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại.`;
+            
+            // Không chuyển câu, người chơi phải trả lời lại câu này
+            captchaInput.value = ''; 
             captchaInput.focus();
+            
+            startTimer(); // Bắt đầu lại timer cho câu hỏi này
         }
     });
 
@@ -260,9 +304,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 7. Hàm Ghi Danh ---
+    // --- 8. Hàm Ghi Danh ---
     btnRegister.addEventListener('click', () => {
-        const nameInput = prompt('Nhập tên người chơi của bạn:');
+        const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):');
         if (nameInput && nameInput.trim() !== '') {
             playerName = nameInput.trim();
             playerNameSpan.textContent = playerName;
@@ -271,15 +315,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- 8. Hàm Hiển thị Top 10 ---
+    // --- 9. Hàm Hiển thị Top 10 ---
     function displayTop10() {
-        // Tải lại điểm mới nhất từ Local Storage (đề phòng trường hợp tab khác đã cập nhật)
+        // Tải lại điểm mới nhất từ Local Storage
         topScores = JSON.parse(localStorage.getItem('maple_top10')) || [];
         
         gameArea.classList.add('hidden');
         top10Area.classList.remove('hidden');
 
-        top10List.innerHTML = ''; // Xóa danh sách cũ
+        top10List.innerHTML = ''; 
 
         if (topScores.length === 0) {
             top10List.innerHTML = '<li>Chưa có người chơi nào ghi điểm cao.</li>';
@@ -298,7 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Khởi tạo hiển thị Top 10 ngay khi trang web mở
     displayTop10();
-    top10Area.classList.remove('hidden'); // Đảm bảo Top 10 hiển thị khi mở trang
-
+    top10Area.classList.remove('hidden'); 
+    
+    // Thêm hiển thị thời gian ban đầu vào thanh thông tin
+    questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
-
