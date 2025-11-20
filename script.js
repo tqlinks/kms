@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         availableCaptchas.splice(randomIndex, 1);
 
         // Gán hình ảnh vào thẻ <img>
-        captchaImage.src = `img/${currentCaptcha.file}`;
+        captchaImage.src = `${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
         captchaInput.value = ''; // Xóa input cũ
         captchaInput.focus();
@@ -347,3 +347,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Thêm hiển thị thời gian ban đầu vào thanh thông tin
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
+
