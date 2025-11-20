@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         availableCaptchas.splice(randomIndex, 1);
 
         // Gán hình ảnh vào thẻ <img>
-        captchaImage.src = `img/${currentCaptcha.file}`;
+        captchaImage.src = `/${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
         captchaInput.value = ''; // Xóa input cũ
         captchaInput.focus();
@@ -299,4 +299,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Khởi tạo hiển thị Top 10 ngay khi trang web mở
     displayTop10();
     top10Area.classList.remove('hidden'); // Đảm bảo Top 10 hiển thị khi mở trang
+
 });
