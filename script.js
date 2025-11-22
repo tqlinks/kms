@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSubmit = document.getElementById('btn-submit');
     const btnTop10 = document.getElementById('btn-top10');
     const btnRegister = document.getElementById('btn-register');
+    // Nút gợi ý mới
+    const btnHint = document.getElementById('btn-hint'); 
+    
     const gameArea = document.getElementById('game-area');
     const top10Area = document.getElementById('top10-area');
     const captchaImage = document.getElementById('captcha-image');
@@ -24,12 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let topScores = JSON.parse(localStorage.getItem('maple_top10')) || []; 
     
     // --- Biến Thời gian & Điểm ---
-    let timer; // Biến giữ ID của setInterval
+    let timer; 
     let timeLeft = 60;
-    const TIME_LIMIT = 60; // Giới hạn thời gian cho mỗi câu
-    const SCORE_CORRECT = 100; // Điểm cộng khi đúng
-    const SCORE_INCORRECT = -100; // Điểm trừ khi sai
-    const SCORE_TIMEOUT = -100; // Điểm trừ khi hết giờ
+    const TIME_LIMIT = 60;
+    const SCORE_CORRECT = 100;
+    const SCORE_INCORRECT = -100;
+    const SCORE_TIMEOUT = -100;
+    const SCORE_HINT = -100; // Điểm trừ khi dùng gợi ý
 
     // --- Dữ liệu 99 Captcha (Đã nhúng trực tiếp) ---
     const ALL_CAPTCHAS_DATA = [
@@ -103,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '68.gif', answer: '크리스탈게이' },
         { file: '69.gif', answer: '니쟁기소은월' },
         { file: '70.gif', answer: '강력한꽃덤불' },
-        { file: '71.gif', answer: '킨에반한겨울' },
+        { file: '71.gif', answer: '킨E반한겨울' },
         { file: '72.gif', answer: '호문몽땅차크로' },
         { file: '73.gif', answer: '버스스켈레톤나' },
         { file: '74.gif', answer: '어둠의집행자' },
@@ -145,10 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2. Hàm Quản lý Đồng hồ đếm ngược ---
     function startTimer() {
-        clearInterval(timer); // Xóa timer cũ nếu có
+        clearInterval(timer); 
         timeLeft = TIME_LIMIT;
         
-        // Cập nhật hiển thị thời gian
         questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
         
         timer = setInterval(() => {
@@ -157,20 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (timeLeft <= 0) {
                 clearInterval(timer);
-                handleTimeout(); // Xử lý khi hết giờ
+                handleTimeout();
             }
-        }, 1000); // Cập nhật mỗi 1 giây
+        }, 1000); 
     }
     
     // --- Xử lý khi hết giờ ---
     function handleTimeout() {
-        updateScore(SCORE_TIMEOUT); // Trừ 100 điểm
+        btnHint.classList.add('hidden'); // Ẩn nút gợi ý
+        updateScore(SCORE_TIMEOUT); 
         feedbackMessage.textContent = `⏰ HẾT GIỜ! Bạn bị trừ ${-SCORE_TIMEOUT} điểm.`;
         
-        // Kiểm tra xem còn câu hỏi không để chuyển sang câu tiếp theo
         if (questionsAnswered < MAX_QUESTIONS) {
-            // Câu này không được tính là trả lời đúng (questionsAnswered không tăng)
-            setTimeout(setRandomCaptcha, 1500); // Đợi 1.5 giây rồi chuyển hình
+            setTimeout(setRandomCaptcha, 1500);
         } else {
             endGame();
         }
@@ -184,21 +186,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Chọn ngẫu nhiên một index trong mảng các câu hỏi còn lại
         const randomIndex = Math.floor(Math.random() * availableCaptchas.length);
         currentCaptcha = availableCaptchas[randomIndex];
 
-        // Loại bỏ câu hỏi đã chọn ra khỏi mảng
         availableCaptchas.splice(randomIndex, 1);
 
-        // Gán hình ảnh vào thẻ <img>
-        captchaImage.src = `${currentCaptcha.file}`;
+        captchaImage.src = `img/${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
-        captchaInput.value = ''; // Xóa input cũ
+        captchaInput.value = ''; 
         captchaInput.focus();
         feedbackMessage.textContent = 'Hãy nhập đáp án...';
         
-        startTimer(); // Bắt đầu đếm ngược cho câu hỏi mới
+        btnHint.classList.add('hidden'); // Luôn ẩn nút gợi ý khi chuyển câu mới
+        startTimer();
     }
     
     // --- 4. Hàm Bắt đầu Trò chơi ---
@@ -212,21 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
         score = 0;
         questionsAnswered = 0;
         updateScore(0);
-        availableCaptchas = [...ALL_CAPTCHAS_DATA]; // Sao chép toàn bộ 99 câu hỏi
+        availableCaptchas = [...ALL_CAPTCHAS_DATA];
         
         gameArea.classList.remove('hidden');
         top10Area.classList.add('hidden');
-        setRandomCaptcha(); // Bắt đầu câu hỏi đầu tiên (sẽ gọi startTimer)
+        setRandomCaptcha();
     });
 
     // --- 5. Hàm Lưu Top 10 (Sử dụng Local Storage) ---
     function saveTopScore(name, finalScore) {
-        if (finalScore === 0) return; // Chỉ lưu điểm khác 0
+        if (finalScore === 0) return; 
 
-        // 1. Thêm điểm mới
         topScores.push({ name: name, score: finalScore, timestamp: Date.now() });
 
-        // 2. Lọc và sắp xếp lại để giữ Top 10 duy nhất
         let uniqueScores = {};
         topScores.forEach(entry => {
             if (!uniqueScores[entry.name] || entry.score > uniqueScores[entry.name].score) {
@@ -234,18 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Sắp xếp lại danh sách duy nhất và chỉ lấy Top 10
         topScores = Object.values(uniqueScores)
                             .sort((a, b) => b.score - a.score)
                             .slice(0, 10);
         
-        // 3. Lưu lại vào Local Storage
         localStorage.setItem('maple_top10', JSON.stringify(topScores));
     }
     
     // --- 6. Hàm Kết thúc Trò chơi ---
     function endGame() {
-        clearInterval(timer); // Dừng timer
+        clearInterval(timer);
+        btnHint.classList.add('hidden');
         alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
         
         saveTopScore(playerName, score); 
@@ -262,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
              return;
         }
         
-        clearInterval(timer); // Dừng timer ngay khi người chơi submit
+        clearInterval(timer); // Dừng timer để tính toán
         
         const userInput = captchaInput.value.trim();
         const correctAnswer = currentCaptcha.answer.trim();
@@ -271,31 +268,60 @@ document.addEventListener('DOMContentLoaded', () => {
             // Đáp án đúng
             questionsAnswered++;
             
-            // Tính điểm thưởng thời gian
             const timeBonus = timeLeft; 
             const totalScoreChange = SCORE_CORRECT + timeBonus;
             
             updateScore(totalScoreChange); 
             feedbackMessage.textContent = `✅ Chính xác! +${SCORE_CORRECT} điểm, +${timeBonus} điểm thưởng thời gian. Tổng cộng: +${totalScoreChange} điểm.`;
             
+            btnHint.classList.add('hidden'); // Ẩn nút gợi ý sau khi trả lời đúng
+            
             if (questionsAnswered < MAX_QUESTIONS) {
-                setTimeout(setRandomCaptcha, 1000); // Chuyển sang câu tiếp theo
+                setTimeout(setRandomCaptcha, 1000); 
             } else {
                 endGame();
             }
             
         } else {
             // Đáp án sai
-            updateScore(SCORE_INCORRECT); // Trừ 100 điểm
-            feedbackMessage.textContent = `❌ Sai rồi! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại.`;
+            updateScore(SCORE_INCORRECT); 
+            feedbackMessage.textContent = `❌ Sai rồi! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại hoặc Xem Đáp án.`;
             
-            // Không chuyển câu, người chơi phải trả lời lại câu này
             captchaInput.value = ''; 
             captchaInput.focus();
             
-            startTimer(); // Bắt đầu lại timer cho câu hỏi này
+            btnHint.classList.remove('hidden'); // HIỂN THỊ NÚT GỢI Ý
+            startTimer(); // Chạy lại timer cho câu hỏi này
         }
     });
+    
+    // --- 8. Chức năng Xem Đáp án (Gợi ý) MỚI ---
+    btnHint.addEventListener('click', () => {
+        if (!currentCaptcha || score < -SCORE_HINT) { // Kiểm tra điểm tránh bị âm quá nhiều
+             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
+             return;
+        }
+        
+        clearInterval(timer); // Dừng timer
+        updateScore(SCORE_HINT); // Trừ 100 điểm
+        
+        const correctAnswer = currentCaptcha.answer.trim();
+        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 3 giây.`;
+        
+        captchaInput.value = correctAnswer; // Hiển thị đáp án trong ô nhập
+        
+        // Coi như đã trả lời xong câu này (dù dùng gợi ý)
+        questionsAnswered++; 
+        btnHint.classList.add('hidden'); 
+
+        if (questionsAnswered < MAX_QUESTIONS) {
+            setTimeout(setRandomCaptcha, 3000); 
+        } else {
+            // Dù dùng gợi ý ở câu cuối cùng thì vẫn kết thúc trò chơi
+            endGame(); 
+        }
+    });
+
 
     // Cho phép Enter để submit
     captchaInput.addEventListener('keydown', (e) => {
@@ -304,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 8. Hàm Ghi Danh ---
+    // --- 9. Hàm Ghi Danh ---
     btnRegister.addEventListener('click', () => {
         const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):');
         if (nameInput && nameInput.trim() !== '') {
@@ -315,9 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- 9. Hàm Hiển thị Top 10 ---
+    // --- 10. Hàm Hiển thị Top 10 ---
     function displayTop10() {
-        // Tải lại điểm mới nhất từ Local Storage
         topScores = JSON.parse(localStorage.getItem('maple_top10')) || [];
         
         gameArea.classList.add('hidden');
@@ -337,14 +362,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Cập nhật sự kiện nút Top 10
     btnTop10.addEventListener('click', displayTop10);
     
-    // Khởi tạo hiển thị Top 10 ngay khi trang web mở
+    // Khởi tạo hiển thị
     displayTop10();
     top10Area.classList.remove('hidden'); 
     
-    // Thêm hiển thị thời gian ban đầu vào thanh thông tin
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
-
