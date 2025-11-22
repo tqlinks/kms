@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSubmit = document.getElementById('btn-submit');
     const btnTop10 = document.getElementById('btn-top10');
     const btnRegister = document.getElementById('btn-register');
-    // Nút gợi ý mới
     const btnHint = document.getElementById('btn-hint'); 
     
     const gameArea = document.getElementById('game-area');
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const MAX_QUESTIONS = 99; 
     let currentCaptcha = null;
     let availableCaptchas = []; 
-    let topScores = JSON.parse(localStorage.getItem('maple_top10')) || []; 
     
     // --- Biến Thời gian & Điểm ---
     let timer; 
@@ -33,109 +31,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const SCORE_CORRECT = 100;
     const SCORE_INCORRECT = -100;
     const SCORE_TIMEOUT = -100;
-    const SCORE_HINT = -100; // Điểm trừ khi dùng gợi ý
+    const SCORE_HINT = -100;
 
-    // --- Dữ liệu 99 Captcha (Đã nhúng trực tiếp) ---
+    // --- Dữ liệu 99 Captcha (Đã cập nhật) ---
     const ALL_CAPTCHAS_DATA = [
-        { file: '1.gif', answer: '조수블루습격자' },
-        { file: '2.gif', answer: '이프손잡이' },
-        { file: '3.gif', answer: '레이벌쳐' },
-        { file: '4.gif', answer: '에드엘리' },
-        { file: '5.gif', answer: '프기갑병' },
-        { file: '6.gif', answer: '새우가면' },
-        { file: '7.gif', answer: '키라라룽칼로' },
-        { file: '8.gif', answer: '트러블메이커' },
-        { file: '9.gif', answer: '버크손님대신관' },
-        { file: '10.gif', answer: '지그리드옐로우' },
-        { file: '11.gif', answer: '현자렉스탕탕아' },
-        { file: '12.gif', answer: '리스탄의영' },
-        { file: '13.gif', answer: '얼어불은허무' },
-        { file: '14.gif', answer: '트러블메이' },
-        { file: '15.gif', answer: '드래곤터틀' },
-        { file: '16.gif', answer: '붉은모래난쟁이' },
-        { file: '17.gif', answer: '구천록노바지원' },
-        { file: '18.gif', answer: '올리비아핑크빈' },
-        { file: '19.gif', answer: '황룡아기바' },
-        { file: '20.gif', answer: '추는빨간구' },
-        { file: '21.gif', answer: '타픽시데들' },
-        { file: '22.gif', answer: '들리디스트로이' },
-        { file: '23.gif', answer: '첼릭버스' },
-        { file: '24.gif', answer: '드래곤터틀' },
-        { file: '25.gif', answer: '알베르트' },
-        { file: '26.gif', answer: '타그래이' },
-        { file: '27.gif', answer: '잃은그레이' },
-        { file: '28.gif', answer: '염된수액삐빅' },
-        { file: '29.gif', answer: '드릭체키스코' },
-        { file: '30.gif', answer: '주시하는' },
-        { file: '31.gif', answer: '얼어불은고독' },
-        { file: '32.gif', answer: '이머파란버섯' },
-        { file: '33.gif', answer: '더키패밀' },
-        { file: '34.gif', answer: '시약의피조' },
-        { file: '35.gif', answer: '장레옹모리' },
-        { file: '36.gif', answer: '에델슈타인게시' },
-        { file: '37.gif', answer: '렉스라일라' },
-        { file: '38.gif', answer: '브라운테' },
-        { file: '39.gif', answer: '파르마엘리쟈' },
-        { file: '40.gif', answer: '데들리아울' },
-        { file: '41.gif', answer: '로이스큰펭권' },
-        { file: '42.gif', answer: '비올레타유리관' },
-        { file: '43.gif', answer: '불꽃의사' },
-        { file: '44.gif', answer: '들리디스트로이' },
-        { file: '45.gif', answer: '계의제단' },
-        { file: '46.gif', answer: '시미아나뭇가지' },
-        { file: '47.gif', answer: '뒷골목의제이엠' },
-        { file: '48.gif', answer: '스텐노무쇠' },
-        { file: '49.gif', answer: '벨루어벤제롬' },
-        { file: '50.gif', answer: '종자의수하' },
-        { file: '51.gif', answer: '올리버겨대스콜' },
-        { file: '52.gif', answer: '말수적은' },
-        { file: '53.gif', answer: '켈레톤밀리샤' },
-        { file: '54.gif', answer: '리스마스케이크' },
-        { file: '55.gif', answer: '해시태그폰' },
-        { file: '56.gif', answer: '리프뚱뚱이라' },
-        { file: '57.gif', answer: '지시그너스하스' },
-        { file: '58.gif', answer: '다크예티와' },
-        { file: '59.gif', answer: '자아스텀피' },
-        { file: '60.gif', answer: '령이깃든푸' },
-        { file: '61.gif', answer: '밀라타우로마' },
-        { file: '62.gif', answer: '키누아리솔' },
-        { file: '63.gif', answer: '라솔빙수토기' },
-        { file: '64.gif', answer: '스타우로마시' },
-        { file: '65.gif', answer: '한에르다스' },
-        { file: '66.gif', answer: '시그너스' },
-        { file: '67.gif', answer: '물갈색모래토끼' },
-        { file: '68.gif', answer: '크리스탈게이' },
-        { file: '69.gif', answer: '니쟁기소은월' },
-        { file: '70.gif', answer: '강력한꽃덤불' },
-        { file: '71.gif', answer: '킨에반한겨울' },
-        { file: '72.gif', answer: '호문몽땅차크로' },
-        { file: '73.gif', answer: '버스스켈레톤나' },
-        { file: '74.gif', answer: '어둠의집행자' },
-        { file: '75.gif', answer: '라이얀삼단지' },
-        { file: '76.gif', answer: '비영웅을알아보' },
-        { file: '77.gif', answer: '스티온이카르트' },
-        { file: '78.gif', answer: '그릴스화' },
-        { file: '79.gif', answer: '톤밀리샤' },
-        { file: '80.gif', answer: '나인하트' },
-        { file: '81.gif', answer: '트로이어' },
-        { file: '82.gif', answer: '지그문트윌' },
-        { file: '83.gif', answer: '팜오베론' },
-        { file: '84.gif', answer: '콘트라베이스맨' },
-        { file: '85.gif', answer: '마스터호브' },
-        { file: '86.gif', answer: '흥부모코' },
-        { file: '87.gif', answer: '옐로우불꽃마이' },
-        { file: '88.gif', answer: '트러블메이커' },
-        { file: '89.gif', answer: '리관작은불씨' },
-        { file: '90.gif', answer: '스틸라장난감목' },
-        { file: '91.gif', answer: '브리헤네' },
-        { file: '92.gif', answer: '테일의왼쪽머' },
-        { file: '93.gif', answer: '인매그너스' },
-        { file: '94.gif', answer: '틱이계의사' },
-        { file: '95.gif', answer: '파파픽시아카이' },
-        { file: '96.gif', answer: '급닌자블록퍼스' },
-        { file: '97.gif', answer: '니카울리카' },
-        { file: '98.gif', answer: '신스펙터' },
-        { file: '99.gif', answer: '칼라일혼돈' }
+        { file: '1.gif', answer: '조수블루습격자' }, { file: '2.gif', answer: '이프손잡이' }, { file: '3.gif', answer: '레이벌쳐' },
+        { file: '4.gif', answer: '에드엘리' }, { file: '5.gif', answer: '프기갑병' }, { file: '6.gif', answer: '새우가면' },
+        { file: '7.gif', answer: '키라라룽칼로' }, { file: '8.gif', answer: '트러블메이커' }, { file: '9.gif', answer: '버크손님대신관' },
+        { file: '10.gif', answer: '지그리드옐로우' }, { file: '11.gif', answer: '현자렉스탕탕아' }, { file: '12.gif', answer: '리스탄의영' },
+        { file: '13.gif', answer: '얼어불은허무' }, { file: '14.gif', answer: '트러블메이' }, { file: '15.gif', answer: '드래곤터틀' },
+        { file: '16.gif', answer: '붉은모래난쟁이' }, { file: '17.gif', answer: '구천록노바지원' }, { file: '18.gif', answer: '올리비아핑크빈' },
+        { file: '19.gif', answer: '황룡아기바' }, { file: '20.gif', answer: '추는빨간구' }, { file: '21.gif', answer: '타픽시데들' },
+        { file: '22.gif', answer: '들리디스트로이' }, { file: '23.gif', answer: '첼릭버스' }, { file: '24.gif', answer: '드래곤터틀' },
+        { file: '25.gif', answer: '알베르트' }, { file: '26.gif', answer: '타그래이' }, { file: '27.gif', answer: '잃은그레이' },
+        { file: '28.gif', answer: '염된수액삐빅' }, { file: '29.gif', answer: '드릭체키스코' }, { file: '30.gif', answer: '주시하는' },
+        { file: '31.gif', answer: '얼어불은고독' }, { file: '32.gif', answer: '이머파란버섯' }, { file: '33.gif', answer: '더키패밀' },
+        { file: '34.gif', answer: '시약의피조' }, { file: '35.gif', answer: '장레옹모리' }, { file: '36.gif', answer: '에델슈타인게시' },
+        { file: '37.gif', answer: '렉스라일라' }, { file: '38.gif', answer: '브라운테' }, { file: '39.gif', answer: '파르마엘리쟈' },
+        { file: '40.gif', answer: '데들리아울' }, { file: '41.gif', answer: '로이스큰펭권' }, { file: '42.gif', answer: '비올레타유리관' },
+        { file: '43.gif', answer: '불꽃의사' }, { file: '44.gif', answer: '들리디스트로이' }, { file: '45.gif', answer: '계의제단' },
+        { file: '46.gif', answer: '시미아나뭇가지' }, { file: '47.gif', answer: '뒷골목의제이엠' }, { file: '48.gif', answer: '스텐노무쇠' },
+        { file: '49.gif', answer: '벨루어벤제롬' }, { file: '50.gif', answer: '종자의수하' }, { file: '51.gif', answer: '올리버겨대스콜' },
+        { file: '52.gif', answer: '말수적은' }, { file: '53.gif', answer: '켈레톤밀리샤' }, { file: '54.gif', answer: '리스마스케이크' },
+        { file: '55.gif', answer: '해시태그폰' }, { file: '56.gif', answer: '리프뚱뚱이라' }, { file: '57.gif', answer: '지시그너스하스' },
+        { file: '58.gif', answer: '다크예티와' }, { file: '59.gif', answer: '자아스텀피' }, { file: '60.gif', answer: '령이깃든푸' },
+        { file: '61.gif', answer: '밀라타우로마' }, { file: '62.gif', answer: '키누아리솔' }, { file: '63.gif', answer: '라솔빙수토기' },
+        { file: '64.gif', answer: '스타우로마시' }, { file: '65.gif', answer: '한에르다스' }, { file: '66.gif', answer: '시그너스' },
+        { file: '67.gif', answer: '물갈색모래토끼' }, { file: '68.gif', answer: '크리스탈게이' }, { file: '69.gif', answer: '니쟁기소은월' },
+        { file: '70.gif', answer: '강력한꽃덤불' }, { file: '71.gif', answer: '킨에반한겨울' }, { file: '72.gif', answer: '호문몽땅차크로' },
+        { file: '73.gif', answer: '버스스켈레톤나' }, { file: '74.gif', answer: '어둠의집행자' }, { file: '75.gif', answer: '라이얀삼단지' },
+        { file: '76.gif', answer: '비영웅을알아보' }, { file: '77.gif', answer: '스티온이카르트' }, { file: '78.gif', answer: '그릴스화' },
+        { file: '79.gif', answer: '톤밀리샤' }, { file: '80.gif', answer: '나인하트' }, { file: '81.gif', answer: '트로이어' },
+        { file: '82.gif', answer: '지그문트윌' }, { file: '83.gif', answer: '팜오베론' }, { file: '84.gif', answer: '콘트라베이스맨' },
+        { file: '85.gif', answer: '마스터호브' }, { file: '86.gif', answer: '흥부모코' }, { file: '87.gif', answer: '옐로우불꽃마이' },
+        { file: '88.gif', answer: '트러블메이커' }, { file: '89.gif', answer: '리관작은불씨' }, { file: '90.gif', answer: '스틸라장난감목' },
+        { file: '91.gif', answer: '브리헤네' }, { file: '92.gif', answer: '테일의왼쪽머' }, { file: '93.gif', answer: '인매그너스' },
+        { file: '94.gif', answer: '틱이계의사' }, { file: '95.gif', answer: '파파픽시아카이' }, { file: '96.gif', answer: '급닌자블록퍼스' },
+        { file: '97.gif', answer: '니카울리카' }, { file: '98.gif', answer: '신스펙터' }, { file: '99.gif', answer: '칼라일혼돈' }
     ];
     // --- End Dữ liệu Captcha ---
 
@@ -151,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         clearInterval(timer); 
         timeLeft = TIME_LIMIT;
-        
         questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
         
         timer = setInterval(() => {
@@ -167,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Xử lý khi hết giờ ---
     function handleTimeout() {
-        btnHint.classList.add('hidden'); // Ẩn nút gợi ý
+        btnHint.classList.add('hidden'); 
         updateScore(SCORE_TIMEOUT); 
         feedbackMessage.textContent = `⏰ HẾT GIỜ! Bạn bị trừ ${-SCORE_TIMEOUT} điểm.`;
         
@@ -197,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         captchaInput.focus();
         feedbackMessage.textContent = 'Hãy nhập đáp án...';
         
-        btnHint.classList.add('hidden'); // Luôn ẩn nút gợi ý khi chuyển câu mới
+        btnHint.classList.add('hidden'); 
         startTimer();
     }
     
@@ -208,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Reset trạng thái trò chơi
         score = 0;
         questionsAnswered = 0;
         updateScore(0);
@@ -219,62 +149,83 @@ document.addEventListener('DOMContentLoaded', () => {
         setRandomCaptcha();
     });
 
-    // --- 5. Hàm Lưu Top 10 (Sử dụng Local Storage) ---
-    function saveTopScore(name, finalScore) {
-        if (finalScore === 0) return; 
+    // -----------------------------------------------------------------
+    // --- 5. Hàm Lưu Top Score ONLINE (Sử dụng Firebase Firestore) ---
+    // -----------------------------------------------------------------
+    async function saveTopScoreOnline(name, finalScore) {
+        if (finalScore <= 0 || !db) return; // Kiểm tra điểm và đối tượng Firestore
 
-        topScores.push({ name: name, score: finalScore, timestamp: Date.now() });
+        const scoreRef = db.collection('top_scores').doc(name);
 
-        let uniqueScores = {};
-        topScores.forEach(entry => {
-            if (!uniqueScores[entry.name] || entry.score > uniqueScores[entry.name].score) {
-                uniqueScores[entry.name] = entry;
+        try {
+            const doc = await scoreRef.get();
+            let shouldUpdate = false;
+
+            if (!doc.exists) {
+                // Nếu chưa có, tạo mới
+                shouldUpdate = true;
+            } else {
+                // Nếu đã có, kiểm tra nếu điểm mới CAO HƠN
+                const currentScore = doc.data().score;
+                if (finalScore > currentScore) {
+                    shouldUpdate = true;
+                }
             }
-        });
-        
-        topScores = Object.values(uniqueScores)
-                            .sort((a, b) => b.score - a.score)
-                            .slice(0, 10);
-        
-        localStorage.setItem('maple_top10', JSON.stringify(topScores));
+
+            if (shouldUpdate) {
+                await scoreRef.set({
+                    name: name,
+                    score: finalScore,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`[Firebase]: Cập nhật điểm thành công cho ${name}: ${finalScore}`);
+            } else {
+                console.log(`[Firebase]: Điểm mới (${finalScore}) không cao hơn điểm cũ.`);
+            }
+
+        } catch (e) {
+            console.error("[Firebase]: Lỗi khi lưu điểm:", e);
+            alert("Lỗi khi kết nối/lưu điểm lên Server. Vui lòng kiểm tra console.");
+        }
     }
+    // -----------------------------------------------------------------
+    
     
     // --- 6. Hàm Kết thúc Trò chơi ---
-    function endGame() {
+    async function endGame() {
         clearInterval(timer);
         btnHint.classList.add('hidden');
         alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
         
-        saveTopScore(playerName, score); 
+        // **GỌI HÀM LƯU ONLINE**
+        await saveTopScoreOnline(playerName, score); 
         
         gameArea.classList.add('hidden');
-        displayTop10(); 
+        displayTop10Online(); 
     }
 
 
-    // --- 7. Kiểm tra Đáp án ---
+    // --- 7. Kiểm tra Đáp án (Không đổi) ---
     btnSubmit.addEventListener('click', () => {
         if (!currentCaptcha) {
              feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
              return;
         }
         
-        clearInterval(timer); // Dừng timer để tính toán
+        clearInterval(timer);
         
         const userInput = captchaInput.value.trim();
         const correctAnswer = currentCaptcha.answer.trim();
 
         if (userInput === correctAnswer) {
-            // Đáp án đúng
             questionsAnswered++;
-            
             const timeBonus = timeLeft; 
             const totalScoreChange = SCORE_CORRECT + timeBonus;
             
             updateScore(totalScoreChange); 
             feedbackMessage.textContent = `✅ Chính xác! +${SCORE_CORRECT} điểm, +${timeBonus} điểm thưởng thời gian. Tổng cộng: +${totalScoreChange} điểm.`;
             
-            btnHint.classList.add('hidden'); // Ẩn nút gợi ý sau khi trả lời đúng
+            btnHint.classList.add('hidden'); 
             
             if (questionsAnswered < MAX_QUESTIONS) {
                 setTimeout(setRandomCaptcha, 1000); 
@@ -283,41 +234,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
         } else {
-            // Đáp án sai
             updateScore(SCORE_INCORRECT); 
             feedbackMessage.textContent = `❌ Sai rồi! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại hoặc Xem Đáp án.`;
             
             captchaInput.value = ''; 
             captchaInput.focus();
             
-            btnHint.classList.remove('hidden'); // HIỂN THỊ NÚT GỢI Ý
-            startTimer(); // Chạy lại timer cho câu hỏi này
+            btnHint.classList.remove('hidden'); 
+            startTimer();
         }
     });
     
-    // --- 8. Chức năng Xem Đáp án (Gợi ý) MỚI ---
+    // --- 8. Chức năng Xem Đáp án (Không đổi) ---
     btnHint.addEventListener('click', () => {
-        if (!currentCaptcha || score < -SCORE_HINT) { // Kiểm tra điểm tránh bị âm quá nhiều
-             alert('100 điểm để xem đáp án!');
+        if (!currentCaptcha || score < -SCORE_HINT) { 
+            
              
         }
         
-        clearInterval(timer); // Dừng timer
-        updateScore(SCORE_HINT); // Trừ 100 điểm
+        clearInterval(timer);
+        updateScore(SCORE_HINT); 
         
         const correctAnswer = currentCaptcha.answer.trim();
         feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.`;
         
-        captchaInput.value = correctAnswer; // Hiển thị đáp án trong ô nhập
+        captchaInput.value = correctAnswer;
         
-        // Coi như đã trả lời xong câu này (dù dùng gợi ý)
         questionsAnswered++; 
         btnHint.classList.add('hidden'); 
 
         if (questionsAnswered < MAX_QUESTIONS) {
             setTimeout(setRandomCaptcha, 30000); 
         } else {
-            // Dù dùng gợi ý ở câu cuối cùng thì vẫn kết thúc trò chơi
             endGame(); 
         }
     });
@@ -330,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 9. Hàm Ghi Danh ---
+    // --- 9. Hàm Ghi Danh (Không đổi) ---
     btnRegister.addEventListener('click', () => {
         const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):');
         if (nameInput && nameInput.trim() !== '') {
@@ -341,35 +289,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- 10. Hàm Hiển thị Top 10 ---
-    function displayTop10() {
-        topScores = JSON.parse(localStorage.getItem('maple_top10')) || [];
-        
+    // -----------------------------------------------------------------
+    // --- 10. Hàm Hiển thị Top 10 ONLINE (Sử dụng Firebase Firestore) ---
+    // -----------------------------------------------------------------
+    async function displayTop10Online() {
+        if (!db) return; 
+
+        top10List.innerHTML = '<li>Đang tải bảng xếp hạng...</li>';
         gameArea.classList.add('hidden');
         top10Area.classList.remove('hidden');
 
-        top10List.innerHTML = ''; 
+        try {
+            const snapshot = await db.collection('top_scores')
+                .orderBy('score', 'desc') // Sắp xếp theo điểm giảm dần
+                .limit(10)                  // Giới hạn 10 kết quả
+                .get();
 
-        if (topScores.length === 0) {
-            top10List.innerHTML = '<li>Chưa có người chơi nào ghi điểm cao.</li>';
-            return;
+            let topScores = [];
+            snapshot.forEach(doc => {
+                topScores.push(doc.data());
+            });
+
+            top10List.innerHTML = ''; 
+
+            if (topScores.length === 0) {
+                top10List.innerHTML = '<li>Chưa có người chơi nào ghi điểm cao.</li>';
+                return;
+            }
+
+            topScores.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.textContent = `#${index + 1}: ${item.name} - ${item.score} điểm`;
+                top10List.appendChild(li);
+            });
+
+        } catch (e) {
+            console.error("[Firebase]: Lỗi khi tải Top 10:", e);
+            top10List.innerHTML = '<li>Lỗi kết nối Server. Vui lòng thử lại sau.</li>';
         }
-
-        topScores.forEach((item, index) => {
-            const li = document.createElement('li');
-            li.textContent = `#${index + 1}: ${item.name} - ${item.score} điểm`;
-            top10List.appendChild(li);
-        });
     }
     
-    btnTop10.addEventListener('click', displayTop10);
+    // **Cập nhật sự kiện nút Top 10**
+    btnTop10.addEventListener('click', displayTop10Online);
     
-    // Khởi tạo hiển thị
-    displayTop10();
-    top10Area.classList.remove('hidden'); 
+    // **Khởi tạo hiển thị Top 10 khi mở trang**
+    displayTop10Online();
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
-
-
-
