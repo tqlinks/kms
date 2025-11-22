@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateScore(SCORE_HINT); 
         
         const correctAnswer = currentCaptcha.answer.trim();
-        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 3 giây.`;
+        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.`;
         
         captchaInput.value = correctAnswer;
         
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnHint.classList.add('hidden'); 
 
         if (questionsAnswered < MAX_QUESTIONS) {
-            setTimeout(setRandomCaptcha, 3000); 
+            setTimeout(setRandomCaptcha, 30000); 
         } else {
             endGame(); 
         }
@@ -370,4 +370,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createRainEffect();
 });
+
 
