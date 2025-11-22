@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerNameSpan = document.getElementById('player-name');
     const top10List = document.getElementById('top10-list');
 
+    // Lấy đối tượng Firebase Firestore đã khởi tạo trong index.html
+    const db = window.db; 
+
     // --- Biến Trạng thái Trò chơi ---
     let score = 0;
     let playerName = 'Khách';
@@ -32,40 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const SCORE_INCORRECT = -100;
     const SCORE_TIMEOUT = -100;
     const SCORE_HINT = -100;
-// --- Logic Hiệu ứng Mưa Rơi ---
-function createRainEffect() {
-    const container = document.querySelector('.rain-container');
-    const numberOfDrops = 100; // Số lượng hạt mưa
-    
-    for (let i = 0; i < numberOfDrops; i++) {
-        const drop = document.createElement('div');
-        drop.classList.add('rain-drop');
-        
-        // Vị trí ngẫu nhiên trên trục X
-        drop.style.left = `${Math.random() * 100}%`;
-        
-        // Thời gian rơi ngẫu nhiên (từ 0.8s đến 2s)
-        const duration = Math.random() * 1.2 + 0.8;
-        drop.style.animationDuration = `${duration}s`;
-        
-        // Độ trễ ngẫu nhiên để mưa rơi không đồng loạt
-        const delay = Math.random() * 2;
-        drop.style.animationDelay = `-${delay}s`;
-        
-        // Kích thước ngẫu nhiên (từ 20px đến 40px)
-        const size = Math.random() * 20 + 20;
-        drop.style.height = `${size}px`;
-        
-        // Độ mờ ngẫu nhiên để tạo độ sâu
-        drop.style.opacity = Math.random() * 0.5 + 0.3;
 
-        container.appendChild(drop);
-    }
-}
-
-// Gọi hàm khi toàn bộ nội dung trang đã tải xong
-document.addEventListener('DOMContentLoaded', createRainEffect);
-    // --- Dữ liệu 99 Captcha (Đã cập nhật) ---
+    // --- Dữ liệu 99 Captcha (ĐÃ CẬP NHẬT) ---
     const ALL_CAPTCHAS_DATA = [
         { file: '1.gif', answer: '조수블루습격자' }, { file: '2.gif', answer: '이프손잡이' }, { file: '3.gif', answer: '레이벌쳐' },
         { file: '4.gif', answer: '에드엘리' }, { file: '5.gif', answer: '프기갑병' }, { file: '6.gif', answer: '새우가면' },
@@ -87,7 +58,7 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
         { file: '52.gif', answer: '말수적은' }, { file: '53.gif', answer: '켈레톤밀리샤' }, { file: '54.gif', answer: '리스마스케이크' },
         { file: '55.gif', answer: '해시태그폰' }, { file: '56.gif', answer: '리프뚱뚱이라' }, { file: '57.gif', answer: '지시그너스하스' },
         { file: '58.gif', answer: '다크예티와' }, { file: '59.gif', answer: '자아스텀피' }, { file: '60.gif', answer: '령이깃든푸' },
-        { file: '61.gif', answer: '밀라타우로마' }, { file: '62.gif', answer: '키누아리솔' }, { file: '63.gif', answer: '라솔빙하수토기' },
+        { file: '61.gif', answer: '밀라타우로마' }, { file: '62.gif', answer: '키누아리솔' }, { file: '63.gif', answer: '라솔빙하수토기' }, // ĐÃ SỬA
         { file: '64.gif', answer: '스타우로마시' }, { file: '65.gif', answer: '한에르다스' }, { file: '66.gif', answer: '시그너스' },
         { file: '67.gif', answer: '물갈색모래토끼' }, { file: '68.gif', answer: '크리스탈게이' }, { file: '69.gif', answer: '니쟁기소은월' },
         { file: '70.gif', answer: '강력한꽃덤불' }, { file: '71.gif', answer: '킨에반한겨울' }, { file: '72.gif', answer: '호문몽땅차크로' },
@@ -182,22 +153,20 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
     });
 
     // -----------------------------------------------------------------
-    // --- 5. Hàm Lưu Top Score ONLINE (Sử dụng Firebase Firestore) ---
+    // --- 5. Hàm Lưu Top Score ONLINE (Firebase Firestore) ---
     // -----------------------------------------------------------------
     async function saveTopScoreOnline(name, finalScore) {
-        if (finalScore <= 0 || !db) return; // Kiểm tra điểm và đối tượng Firestore
+        if (finalScore <= 0 || !db) return; 
 
-        const scoreRef = db.collection('top_scores').doc(name);
+        const scoreRef = db.collection('top_scores').doc(name); 
 
         try {
             const doc = await scoreRef.get();
             let shouldUpdate = false;
 
             if (!doc.exists) {
-                // Nếu chưa có, tạo mới
                 shouldUpdate = true;
             } else {
-                // Nếu đã có, kiểm tra nếu điểm mới CAO HƠN
                 const currentScore = doc.data().score;
                 if (finalScore > currentScore) {
                     shouldUpdate = true;
@@ -229,7 +198,6 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
         btnHint.classList.add('hidden');
         alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
         
-        // **GỌI HÀM LƯU ONLINE**
         await saveTopScoreOnline(playerName, score); 
         
         gameArea.classList.add('hidden');
@@ -237,7 +205,7 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
     }
 
 
-    // --- 7. Kiểm tra Đáp án (Không đổi) ---
+    // --- 7. Kiểm tra Đáp án ---
     btnSubmit.addEventListener('click', () => {
         if (!currentCaptcha) {
              feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
@@ -277,18 +245,18 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
         }
     });
     
-    // --- 8. Chức năng Xem Đáp án (Không đổi) ---
+    // --- 8. Chức năng Xem Đáp án (Gợi ý) ---
     btnHint.addEventListener('click', () => {
         if (!currentCaptcha || score < -SCORE_HINT) { 
-            
-             
+             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
+             return;
         }
         
         clearInterval(timer);
         updateScore(SCORE_HINT); 
         
         const correctAnswer = currentCaptcha.answer.trim();
-        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.`;
+        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 3 giây.`;
         
         captchaInput.value = correctAnswer;
         
@@ -296,7 +264,7 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
         btnHint.classList.add('hidden'); 
 
         if (questionsAnswered < MAX_QUESTIONS) {
-            setTimeout(setRandomCaptcha, 30000); 
+            setTimeout(setRandomCaptcha, 3000); 
         } else {
             endGame(); 
         }
@@ -310,7 +278,7 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
         }
     });
 
-    // --- 9. Hàm Ghi Danh (Không đổi) ---
+    // --- 9. Hàm Ghi Danh ---
     btnRegister.addEventListener('click', () => {
         const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):');
         if (nameInput && nameInput.trim() !== '') {
@@ -322,10 +290,13 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
 
 
     // -----------------------------------------------------------------
-    // --- 10. Hàm Hiển thị Top 10 ONLINE (Sử dụng Firebase Firestore) ---
+    // --- 10. Hàm Hiển thị Top 10 ONLINE (Firebase Firestore) ---
     // -----------------------------------------------------------------
     async function displayTop10Online() {
-        if (!db) return; 
+        if (!db) {
+            top10List.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase. Kiểm tra cấu hình trong index.html.</li>';
+            return;
+        } 
 
         top10List.innerHTML = '<li>Đang tải bảng xếp hạng...</li>';
         gameArea.classList.add('hidden');
@@ -333,8 +304,9 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
 
         try {
             const snapshot = await db.collection('top_scores')
-                .orderBy('score', 'desc') // Sắp xếp theo điểm giảm dần
-                .limit(10)                  // Giới hạn 10 kết quả
+                .orderBy('score', 'desc')
+                .orderBy('timestamp', 'asc') 
+                .limit(10)                  
                 .get();
 
             let topScores = [];
@@ -357,17 +329,45 @@ document.addEventListener('DOMContentLoaded', createRainEffect);
 
         } catch (e) {
             console.error("[Firebase]: Lỗi khi tải Top 10:", e);
-            top10List.innerHTML = '<li>Lỗi kết nối Server. Vui lòng thử lại sau.</li>';
+            top10List.innerHTML = '<li>Lỗi kết nối Server. Vui lòng kiểm tra console.</li>';
         }
     }
     
-    // **Cập nhật sự kiện nút Top 10**
     btnTop10.addEventListener('click', displayTop10Online);
     
-    // **Khởi tạo hiển thị Top 10 khi mở trang**
+    // Khởi tạo hiển thị Top 10 khi mở trang
     displayTop10Online();
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
+    
+    
+    // -----------------------------------------------------------------
+    // --- 11. KHỞI TẠO HIỆU ỨNG MƯA ---
+    // -----------------------------------------------------------------
+    function createRainEffect() {
+        const container = document.querySelector('.rain-container');
+        const numberOfDrops = 100;
+        
+        for (let i = 0; i < numberOfDrops; i++) {
+            const drop = document.createElement('div');
+            drop.classList.add('rain-drop');
+            
+            drop.style.left = `${Math.random() * 100}%`;
+            
+            const duration = Math.random() * 1.2 + 0.8;
+            drop.style.animationDuration = `${duration}s`;
+            
+            const delay = Math.random() * 2;
+            drop.style.animationDelay = `-${delay}s`;
+            
+            const size = Math.random() * 20 + 20;
+            drop.style.height = `${size}px`;
+            
+            drop.style.opacity = Math.random() * 0.5 + 0.3;
+
+            container.appendChild(drop);
+        }
+    }
+
+    createRainEffect();
 });
-
-
