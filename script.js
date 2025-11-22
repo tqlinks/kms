@@ -298,15 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 8. Chức năng Xem Đáp án (Gợi ý) MỚI ---
     btnHint.addEventListener('click', () => {
         if (!currentCaptcha || score < -SCORE_HINT) { // Kiểm tra điểm tránh bị âm quá nhiều
-             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
-             return;
+             alert('100 điểm để xem đáp án!');
+             
         }
         
         clearInterval(timer); // Dừng timer
         updateScore(SCORE_HINT); // Trừ 100 điểm
         
         const correctAnswer = currentCaptcha.answer.trim();
-        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 3 giây.`;
+        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.`;
         
         captchaInput.value = correctAnswer; // Hiển thị đáp án trong ô nhập
         
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnHint.classList.add('hidden'); 
 
         if (questionsAnswered < MAX_QUESTIONS) {
-            setTimeout(setRandomCaptcha, 3000); 
+            setTimeout(setRandomCaptcha, 30000); 
         } else {
             // Dù dùng gợi ý ở câu cuối cùng thì vẫn kết thúc trò chơi
             endGame(); 
@@ -370,5 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
+
 
 
