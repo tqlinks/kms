@@ -248,8 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 8. Chức năng Xem Đáp án (Gợi ý) ---
     btnHint.addEventListener('click', () => {
         if (!currentCaptcha || score < -SCORE_HINT) { 
-             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
-             return;
+            
         }
         
         clearInterval(timer);
@@ -371,3 +370,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createRainEffect();
 });
+
