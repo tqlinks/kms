@@ -32,7 +32,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const SCORE_INCORRECT = -100;
     const SCORE_TIMEOUT = -100;
     const SCORE_HINT = -100;
+// --- Logic Hiệu ứng Mưa Rơi ---
+function createRainEffect() {
+    const container = document.querySelector('.rain-container');
+    const numberOfDrops = 100; // Số lượng hạt mưa
+    
+    for (let i = 0; i < numberOfDrops; i++) {
+        const drop = document.createElement('div');
+        drop.classList.add('rain-drop');
+        
+        // Vị trí ngẫu nhiên trên trục X
+        drop.style.left = `${Math.random() * 100}%`;
+        
+        // Thời gian rơi ngẫu nhiên (từ 0.8s đến 2s)
+        const duration = Math.random() * 1.2 + 0.8;
+        drop.style.animationDuration = `${duration}s`;
+        
+        // Độ trễ ngẫu nhiên để mưa rơi không đồng loạt
+        const delay = Math.random() * 2;
+        drop.style.animationDelay = `-${delay}s`;
+        
+        // Kích thước ngẫu nhiên (từ 20px đến 40px)
+        const size = Math.random() * 20 + 20;
+        drop.style.height = `${size}px`;
+        
+        // Độ mờ ngẫu nhiên để tạo độ sâu
+        drop.style.opacity = Math.random() * 0.5 + 0.3;
 
+        container.appendChild(drop);
+    }
+}
+
+// Gọi hàm khi toàn bộ nội dung trang đã tải xong
+document.addEventListener('DOMContentLoaded', createRainEffect);
     // --- Dữ liệu 99 Captcha (Đã cập nhật) ---
     const ALL_CAPTCHAS_DATA = [
         { file: '1.gif', answer: '조수블루습격자' }, { file: '2.gif', answer: '이프손잡이' }, { file: '3.gif', answer: '레이벌쳐' },
@@ -337,4 +369,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
+
 
