@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         availableCaptchas.splice(randomIndex, 1);
 
-        captchaImage.src = `img/${currentCaptcha.file}`;
+        captchaImage.src = `${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
         captchaInput.value = ''; 
         captchaInput.focus();
@@ -370,3 +370,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
+
