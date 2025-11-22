@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '47.gif', answer: '뒷골목의제이엠' },
         { file: '48.gif', answer: '스텐노무쇠' },
         { file: '49.gif', answer: '벨루어벤제롬' },
-        { file: '50.gif', answer: '종자의수ha' },
+        { file: '50.gif', answer: '종자의수하' },
         { file: '51.gif', answer: '올리버겨대스콜' },
         { file: '52.gif', answer: '말수적은' },
         { file: '53.gif', answer: '켈레톤밀리샤' },
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '60.gif', answer: '령이깃든푸' },
         { file: '61.gif', answer: '밀라타우로마' },
         { file: '62.gif', answer: '키누아리솔' },
-        { file: '63.gif', answer: '라솔빙ha수토기' },
+        { file: '63.gif', answer: '라솔빙수토기' },
         { file: '64.gif', answer: '스타우로마시' },
         { file: '65.gif', answer: '한에르다스' },
         { file: '66.gif', answer: '시그너스' },
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '68.gif', answer: '크리스탈게이' },
         { file: '69.gif', answer: '니쟁기소은월' },
         { file: '70.gif', answer: '강력한꽃덤불' },
-        { file: '71.gif', answer: '킨E반한겨울' },
+        { file: '71.gif', answer: '킨에반한겨울' },
         { file: '72.gif', answer: '호문몽땅차크로' },
         { file: '73.gif', answer: '버스스켈레톤나' },
         { file: '74.gif', answer: '어둠의집행자' },
@@ -370,4 +370,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
+
 
