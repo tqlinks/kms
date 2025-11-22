@@ -3,50 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>captcha KMS maplestory 0796750236</title>
-    <link rel="stylesheet" href="style.css">
+    <title>MapleStory Captcha Challenge</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #d9534f;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .controls button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #btn-start { background-color: #5cb85c; color: white; }
+        #btn-start:hover { background-color: #4cae4c; }
+        #btn-top10 { background-color: #5bc0de; color: white; }
+        #btn-top10:hover { background-color: #46b8da; }
+        #btn-register { background-color: #f0ad4e; color: white; }
+        #btn-register:hover { background-color: #ec971f; }
+
+        #game-area {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        #captcha-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
+            margin: 0 auto 15px;
+            border: 1px solid #ccc;
+        }
+        #captcha-input {
+            padding: 10px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #btn-submit, #btn-hint {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+        #btn-submit { background-color: #0275d8; }
+        #btn-submit:hover { background-color: #025aa5; }
+        #btn-hint { background-color: #d9534f; }
+        #btn-hint:hover { background-color: #c9302c; }
+        
+        #feedback-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        .score-item {
+            text-align: center;
+        }
+        .score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #d9534f;
+        }
+
+        /* Top 10 Area */
+        #top10-area h2 {
+            text-align: center;
+            color: #0275d8;
+        }
+        #top10-list {
+            list-style: none;
+            padding: 0;
+        }
+        #top10-list li {
+            background: #f9f9f9;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-left: 5px solid #0275d8;
+            border-radius: 3px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+        }
+        #top10-list li:nth-child(1) { border-left-color: gold; font-weight: bold; }
+        #top10-list li:nth-child(2) { border-left-color: silver; }
+        #top10-list li:nth-child(3) { border-left-color: #cd7f32; }
+    </style>
 </head>
 <body>
+    
+    <div class="container">
+        <h1>MapleStory Captcha Challenge</h1>
 
-    <div id="rain-canvas"></div> <header>
-        <h1>CAPTCHA KMS MAPLESTORY 0796750236</h1>
-    </header>
-
-    <main class="container">
-        <div id="info-bar">
-            Điểm hiện tại: <span id="current-score">0</span> |
-            Người chơi: <span id="player-name">Khách</span> |
-            Câu hỏi: <span id="question-count">0/99</span>
-        </div>
-
-        <div id="main-controls">
-            <button id="btn-register">Ghi Danh</button>
-            <button id="btn-start">Bắt Đầu Trò Chơi</button>
-            <button id="btn-top10">Top 10 Người Điểm Cao Nhất</button>
-        </div>
-
-        <div id="game-area" class="hidden">
-            <h2>Giải Mã Captcha</h2>
-            <div id="captcha-box">
-                <img id="captcha-image" src="" alt="Hình ảnh Captcha" class="image-placeholder">
-                <div id="input-area">
-                    <input type="text" id="captcha-input" placeholder="Nhập đáp án tại đây" maxlength="50">
-                    <button id="btn-submit">Kiểm Tra</button>
-                    <button id="btn-hint" class="hidden">Xem Đáp án (-100)</button>
-                </div>
-                <p id="feedback-message">Nhấn "Bắt Đầu Trò Chơi" để bắt đầu.</p>
+        <div class="score-board">
+            <div class="score-item">
+                Người chơi: <span id="player-name">Khách</span>
+            </div>
+            <div class="score-item">
+                Điểm: <span id="current-score" class="score-value">0</span>
+            </div>
+            <div class="score-item">
+                Câu hỏi: <span id="question-count">0/99 (60s)</span>
             </div>
         </div>
 
-        <div id="top10-area" class="hidden">
-            <h2>🏆 Top 10 Người Chơi Cao Điểm Nhất (Lưu trữ cục bộ)</h2>
-            <ul id="top10-list">
-                </ul>
+        <div class="controls">
+            <button id="btn-register">📝 Ghi Danh</button>
+            <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
+            <button id="btn-top10">🏆 Bảng Xếp Hạng</button>
         </div>
         
-    </main>
+        <div id="game-area" class="hidden">
+            <img id="captcha-image" src="" alt="Captcha Image">
+            <input type="text" id="captcha-input" placeholder="Nhập đáp án ở đây...">
+            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 10px;">
+                <button id="btn-submit" style="flex-grow: 1;">✅ Gửi Đáp Án</button>
+                <button id="btn-hint" class="hidden" style="flex-grow: 1;">💡 Xem Đáp Án (-100)</button>
+            </div>
+            <p id="feedback-message">Sẵn sàng...</p>
+        </div>
+
+        <div id="top10-area" class="container">
+            <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
+            <ul id="top10-list">
+                <li>Đang tải...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // *** HÃY THAY THẾ CÁC GIÁ TRỊ SAU BẰNG THÔNG TIN DỰ ÁN FIREBASE CỦA BẠN ***
+        const firebaseConfig = {
+          apiKey: "AIzaSyAXUYaRgG63eVVDpfiQAsWbZVr9Ze_8JPA",
+          authDomain: "kmscaptcha.firebaseapp.com",
+          projectId: "kmscaptcha",
+          storageBucket: "kmscaptcha.firebasestorage.app",
+          messagingSenderId: "164719590340",
+          appId: "1:164719590340:web:b8d3f7e0a8f2c1de3c4291"
+        };
+
+        // Khởi tạo Firebase và Firestore
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(); 
+        
+        // Cần đảm bảo rằng biến 'db' được khai báo toàn cục (global)
+        window.db = db;
+    </script>
 
     <script src="script.js"></script>
-</body>
 
+</body>
 </html>
