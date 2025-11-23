@@ -6,7 +6,7 @@
     <title>MapleStory Captcha Challenge - Online Score</title>
 
     <style>
-        /* --- 1. PHONG CÁCH CHUNG & NỀN (TỐI ƯU HÓA) --- */
+        /* --- 1. PHONG CÁCH CHUNG & NỀN (GAME UI) --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #E0F7FA; /* Nền xanh nhạt tươi mới */
@@ -25,10 +25,22 @@
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
             border: 3px solid #0D47A1; /* Viền xanh đậm kiểu UI Game */
             width: 100%;
-            max-width: 500px; /* Gọn gàng hơn */
+            max-width: 900px; /* Tăng max-width để chứa phần thống kê */
             margin-bottom: 20px;
             position: relative;
             z-index: 10;
+        }
+        
+        /* Chia bố cục chính (Start Screen) */
+        #start-screen {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .main-col {
+            flex: 1 1 450px; /* Cột chính, tối thiểu 450px */
+            min-width: 300px;
         }
 
         h1 {
@@ -36,7 +48,8 @@
             text-align: center;
             margin-bottom: 25px;
             font-size: 2em;
-            text-shadow: 1px 1px 0 #BBDEFB; /* Hiệu ứng chữ 3D nhẹ */
+            text-shadow: 1px 1px 0 #BBDEFB;
+            width: 100%; /* Đảm bảo tiêu đề chiếm hết chiều rộng container */
         }
         
         h2 {
@@ -44,13 +57,14 @@
             margin-top: 0;
             border-bottom: 2px solid #BBDEFB;
             padding-bottom: 10px;
+            font-size: 1.3em;
         }
 
-        /* --- 2. BẢNG ĐIỂM VÀ CAPTCHA --- */
+        /* --- 2. BẢNG ĐIỂM & INPUT --- */
         .score-board {
             display: flex;
             justify-content: space-between;
-            background-color: #BBDEFB; /* Nền xanh nhạt */
+            background-color: #BBDEFB;
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 20px;
@@ -67,12 +81,11 @@
         .score-value {
             display: block;
             font-size: 1.2em;
-            color: #E65100; /* Màu cam nổi bật */
+            color: #E65100;
         }
 
         #captcha-image {
             width: 100%;
-            max-width: 450px;
             height: auto;
             display: block;
             margin: 0 auto 20px;
@@ -99,7 +112,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-top: 20px;
         }
 
         .controls button,
@@ -110,7 +122,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
-            box-shadow: 0 4px #0D47A1; /* Hiệu ứng nút 3D */
+            box-shadow: 0 4px #0D47A1; 
             flex-grow: 1;
         }
         
@@ -120,34 +132,23 @@
              box-shadow: 0 2px #0D47A1;
         }
 
-        /* Nút Bắt đầu */
         #btn-start {
-            background-color: #FFCA28; /* Vàng tươi */
+            background-color: #FFCA28;
             color: #0D47A1;
-            box-shadow: 0 4px #FF8F00; /* Shadow cam đậm */
+            box-shadow: 0 4px #FF8F00;
+            font-size: 1.2em;
         }
         #btn-start:hover {
             background-color: #FFECB3;
         }
-        #btn-start:active {
-             box-shadow: 0 2px #FF8F00;
-        }
-        
-        /* Nút Gửi/Ghi Danh/Top 10/Hint */
+
         .controls button:not(#btn-start),
         #btn-submit, #btn-hint {
-            background-color: #90CAF9; /* Xanh nhạt */
+            background-color: #90CAF9;
             color: #0D47A1;
             box-shadow: 0 4px #42A5F5;
         }
-        #btn-submit:hover, #btn-register:hover, #btn-top10:hover, #btn-hint:hover {
-             background-color: #E3F2FD;
-        }
-        #btn-submit:active, #btn-register:active, #btn-top10:active, #btn-hint:active {
-             box-shadow: 0 2px #42A5F5;
-        }
 
-        /* Nút Thoát Game */
         #btn-exit {
             background-color: #E57373 !important;
             box-shadow: 0 4px #C62828 !important;
@@ -155,35 +156,38 @@
             width: 100%;
             margin-top: 20px;
         }
-        #btn-exit:active {
-             box-shadow: 0 2px #C62828 !important;
-        }
 
-        /* --- 4. BẢNG XẾP HẠNG --- */
-        #top10-list {
+        /* --- 4. LIST CHUNG (BXH & THỐNG KÊ) --- */
+        #top10-list, .stats-list {
             list-style: none;
             padding: 0;
+            font-size: 1em;
         }
-        #top10-list li {
+        #top10-list li, .stats-list li {
             padding: 8px 0;
             border-bottom: 1px dashed #E0E0E0;
             display: flex;
             justify-content: space-between;
         }
         #top10-list li:first-child {
-            color: #FF8F00; /* Vàng cam cho TOP 1 */
+            color: #FF8F00;
             font-size: 1.1em;
             font-weight: bold;
         }
+        
+        .stats-list li {
+            border-bottom: 1px dotted #BBDEFB;
+            font-size: 0.95em;
+        }
 
-        /* --- 5. THANH THÔNG BÁO ONLINE (CHẠY CHỮ) --- */
+        /* --- 5. THANH THÔNG BÁO ONLINE & MƯA --- */
         #online-announcement-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 900px;
             margin-top: 10px;
             background-color: #ffe0b2;
             color: #e65100;
-            padding: 5px 0; /* Padding ngang bị loại bỏ để animation hoạt động */
+            padding: 5px 0;
             border-radius: 5px;
             border: 1px solid #ffcc80;
             overflow: hidden;
@@ -195,7 +199,7 @@
             white-space: nowrap;
             font-weight: bold;
             font-size: 1.1em;
-            display: inline-block; /* Quan trọng cho animation */
+            display: inline-block;
         }
 
         @keyframes scroll-left {
@@ -203,7 +207,6 @@
             100% { transform: translateX(-100%); }
         }
 
-        /* --- 6. HIỆU ỨNG MƯA --- */
         .rain-container {
             position: fixed;
             top: 0;
@@ -227,7 +230,7 @@
             to { transform: translateY(100vh); }
         }
 
-        /* --- 7. UTILITIES --- */
+        /* --- 6. UTILITIES --- */
         .hidden {
             display: none !important;
         }
@@ -247,27 +250,49 @@
 
         <div id="start-screen">
             
-            <div class="score-board">
-                <div class="score-item">
-                    Người chơi: <span id="player-name">Khách</span>
+            <div class="main-col">
+                 <div class="score-board">
+                    <div class="score-item">
+                        Người chơi: <span id="player-name">Khách</span>
+                    </div>
+                    <div class="score-item">
+                        Điểm cao nhất: <span id="highest-score" class="score-value">0</span>
+                    </div>
                 </div>
-                <div class="score-item">
-                    Điểm cao nhất: <span id="highest-score" class="score-value">0</span>
+
+                <div class="controls">
+                    <button id="btn-register">📝 Ghi Danh</button>
+                    <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
+                </div>
+                
+                <div id="top10-area" style="margin-top: 30px;">
+                    <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
+                    <ul id="top10-list">
+                        <li>Đang tải...</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="main-col">
+                <div id="stats-area">
+                    <h2>📊 Thống Kê Captcha (Online)</h2>
+                    <div style="display: flex; gap: 20px;">
+                         <div style="flex: 1;">
+                            <h3>✅ Câu hỏi DỄ nhất (Đúng)</h3>
+                            <ul id="top-correct-list" class="stats-list">
+                                <li>Đang tải thống kê...</li>
+                            </ul>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3>❌ Câu hỏi KHÓ nhất (Sai)</h3>
+                            <ul id="top-incorrect-list" class="stats-list">
+                                <li>Đang tải thống kê...</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="controls">
-                <button id="btn-register">📝 Ghi Danh</button>
-                <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
-            </div>
-
-            <div id="top10-area" style="margin-top: 30px;">
-                <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
-                <ul id="top10-list">
-                    <li>Đang tải...</li>
-                </ul>
-                <button id="btn-top10" class="hidden">🏆 Refresh BXH</button>
-            </div>
         </div>
 
         <div id="game-screen" class="hidden"> 
@@ -322,20 +347,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const db = window.db; 
+            
             // --- Khai báo các phần tử DOM ---
-            // MÀN HÌNH CHUNG & CHUYỂN ĐỔI
             const startScreen = document.getElementById('start-screen');
             const gameScreen = document.getElementById('game-screen');
             const btnStart = document.getElementById('btn-start');
             const btnRegister = document.getElementById('btn-register');
-            const btnTop10 = document.getElementById('btn-top10');
             const btnExit = document.getElementById('btn-exit'); 
             
-            // MÀN HÌNH START (PHẦN 1)
             const highestScoreSpan = document.getElementById('highest-score');
             const top10List = document.getElementById('top10-list');
+            const topCorrectList = document.getElementById('top-correct-list'); // MỚI
+            const topIncorrectList = document.getElementById('top-incorrect-list'); // MỚI
             
-            // MÀN HÌNH GAME (PHẦN 2)
             const btnSubmit = document.getElementById('btn-submit');
             const btnHint = document.getElementById('btn-hint'); 
             const captchaImage = document.getElementById('captcha-image');
@@ -343,14 +368,13 @@
             const feedbackMessage = document.getElementById('feedback-message');
             const currentScoreSpan = document.getElementById('current-score');
             const questionCountSpan = document.getElementById('question-count');
-            const playerNameSpan = document.getElementById('player-name'); // Tên trên Start Screen
-            const playerNameGameSpan = document.getElementById('player-name-game'); // Tên trên Game Screen
-            
+            const playerNameSpan = document.getElementById('player-name');
+            const playerNameGameSpan = document.getElementById('player-name-game'); 
             const onlineAnnouncementText = document.getElementById('online-announcement-text');
             
             // --- Biến Trạng thái Trò chơi ---
             let score = 0;
-            let playerName = localStorage.getItem('playerName') || 'Khách'; // Lưu tên người chơi
+            let playerName = localStorage.getItem('playerName') || 'Khách';
             let questionsAnswered = 0;
             const MAX_QUESTIONS = 99; 
             let currentCaptcha = null;
@@ -404,7 +428,6 @@
             ];
             // --- End Dữ liệu Captcha ---
 
-            // Cập nhật tên người chơi ban đầu
             playerNameSpan.textContent = playerName;
 
 
@@ -415,7 +438,25 @@
                 questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
             }
 
-            // --- 2. Hàm Quản lý Đồng hồ đếm ngược ---
+            // --- 1.5. Cập nhật Thống kê Captcha (Đúng/Sai) ---
+            async function updateCaptchaStats(file, isCorrect) {
+                if (!db) return;
+                
+                const fieldToIncrement = isCorrect ? 'correct_count' : 'incorrect_count';
+                const captchaRef = db.collection('captcha_stats').doc(file);
+
+                try {
+                    await captchaRef.set({
+                        file: file,
+                        [fieldToIncrement]: firebase.firestore.FieldValue.increment(1),
+                    }, { merge: true });
+                } catch (e) {
+                    console.error("[Firebase]: Lỗi khi cập nhật thống kê Captcha:", e);
+                }
+            }
+
+
+            // --- 2. Quản lý Đồng hồ đếm ngược ---
             function startTimer() {
                 clearInterval(timer); 
                 timeLeft = TIME_LIMIT;
@@ -439,6 +480,10 @@
                 updateScore(SCORE_TIMEOUT); 
                 feedbackMessage.textContent = `❌ HẾT GIỜ! Bạn bị trừ ${-SCORE_TIMEOUT} điểm. Chuỗi đúng bị RESET!`;
                 
+                if (currentCaptcha) {
+                    updateCaptchaStats(currentCaptcha.file, false);
+                }
+                
                 if (questionsAnswered < MAX_QUESTIONS) {
                     setTimeout(setRandomCaptcha, 1500);
                 } else {
@@ -447,21 +492,19 @@
             }
 
 
-            // --- 3. Hàm Thiết lập Captcha Ngẫu nhiên ---
+            // --- 3. Thiết lập Captcha Ngẫu nhiên ---
             function setRandomCaptcha() {
                 if (availableCaptchas.length === 0) {
                     endGame();
                     return;
                 }
-                questionsAnswered++; // Tăng số câu hỏi đã làm
+                questionsAnswered++; 
                 
                 const randomIndex = Math.floor(Math.random() * availableCaptchas.length);
                 currentCaptcha = availableCaptchas[randomIndex];
 
                 availableCaptchas.splice(randomIndex, 1);
 
-                // Đường dẫn ảnh giả định là cùng thư mục với file HTML,
-                // hoặc bạn cần thay đổi path nếu cần (vd: captchaImage.src = `img/${currentCaptcha.file}`;)
                 captchaImage.src = `${currentCaptcha.file}`;
                 captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
                 captchaInput.value = ''; 
@@ -472,34 +515,28 @@
                 startTimer();
             }
             
-            // -----------------------------------------------------------------
-            // --- 4. Hàm Bắt đầu Trò chơi (Chuyển Giao diện) ---
-            // -----------------------------------------------------------------
+            // --- 4. Bắt đầu Trò chơi ---
             btnStart.addEventListener('click', () => {
                 if (playerName === 'Khách') {
                     alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
                     return;
                 }
                 
-                // CHUYỂN GIAO DIỆN
                 startScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
                 
-                // Cập nhật tên người chơi trên màn hình Game
                 playerNameGameSpan.textContent = playerName; 
 
                 score = 0;
-                questionsAnswered = 0; // Sẽ tăng lên 1 trong setRandomCaptcha
+                questionsAnswered = 0; 
                 consecutiveCorrects = 0; 
                 updateScore(0);
-                availableCaptchas = [...ALL_CAPTCHAS_DATA]; // Reset danh sách câu hỏi
+                availableCaptchas = [...ALL_CAPTCHAS_DATA]; 
                 
                 setRandomCaptcha();
             });
             
-            // -----------------------------------------------------------------
-            // --- 5. Hàm Lưu Top Score ONLINE (Firebase Firestore) ---
-            // -----------------------------------------------------------------
+            // --- 5. Lưu Top Score Online ---
             async function saveTopScoreOnline(name, finalScore) {
                 if (finalScore <= 0 || !db) return; 
 
@@ -523,25 +560,17 @@
                             name: name,
                             score: finalScore,
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        console.log(`[Firebase]: Cập nhật điểm thành công cho ${name}: ${finalScore}`);
-                    } else {
-                        console.log(`[Firebase]: Điểm mới (${finalScore}) không cao hơn điểm cũ.`);
+                        }, {merge: true});
                     }
-
                 } catch (e) {
                     console.error("[Firebase]: Lỗi khi lưu điểm:", e);
                 }
             }
-            // -----------------------------------------------------------------
             
-            
-            // -----------------------------------------------------------------
-            // --- 6. Hàm Kết thúc/Thoát Trò chơi (Chuyển Giao diện) ---
-            // -----------------------------------------------------------------
+            // --- 6. Kết thúc/Thoát Trò chơi ---
             async function exitToStartScreen(isEndGame = false) {
                 clearInterval(timer);
-                currentCaptcha = null; // Dừng trạng thái game
+                currentCaptcha = null; 
                 
                 const finalScore = score;
                 const finalQuestions = questionsAnswered;
@@ -550,7 +579,6 @@
                     alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${finalQuestions} câu hỏi với tổng điểm là: ${finalScore}!`);
                     await saveTopScoreOnline(playerName, finalScore); 
                 } else {
-                    // Nếu người chơi tự thoát giữa chừng
                     if (finalQuestions > 0 && finalScore > 0) {
                         alert(`Game đã dừng. Điểm số: ${finalScore}. Điểm sẽ được lưu.`);
                         await saveTopScoreOnline(playerName, finalScore); 
@@ -559,10 +587,10 @@
                     }
                 }
                 
-                // CHUYỂN VỀ GIAO DIỆN KHỞI ĐỘNG
                 gameScreen.classList.add('hidden');
                 startScreen.classList.remove('hidden');
                 displayTop10Online(); 
+                displayTopStats();
             }
             
             function endGame() {
@@ -575,9 +603,7 @@
                 }
             });
 
-            // -----------------------------------------------------------------
-            
-            // --- 7. Hàm Gửi Thông Báo Chuỗi Đúng ---
+            // --- 7. Gửi Thông Báo Chuỗi Đúng ---
             async function sendOnlineNotification(name, currentScore, streak) {
                 if (!db || streak < 10) return;
                 
@@ -609,7 +635,6 @@
                 const correctAnswer = currentCaptcha.answer.trim();
 
                 if (userInput === correctAnswer) {
-                    // questionsAnswered++; // Đã tăng trong setRandomCaptcha
                     consecutiveCorrects++;
                     
                     const timeBonus = timeLeft; 
@@ -628,6 +653,8 @@
                         sendOnlineNotification(playerName, score, consecutiveCorrects);
                     }
                     
+                    updateCaptchaStats(currentCaptcha.file, true);
+
                     btnHint.classList.add('hidden'); 
                     
                     if (questionsAnswered < MAX_QUESTIONS) {
@@ -641,11 +668,13 @@
                     updateScore(SCORE_INCORRECT); 
                     feedbackMessage.textContent = `❌ Sai rồi! Đáp án đúng là: ${correctAnswer}. Chuỗi đúng bị RESET! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại hoặc Xem Đáp án.`;
                     
+                    updateCaptchaStats(currentCaptcha.file, false);
+
                     captchaInput.value = ''; 
                     captchaInput.focus();
                     
                     btnHint.classList.remove('hidden'); 
-                    startTimer(); // Bắt đầu lại timer cho người chơi cơ hội sửa
+                    startTimer(); 
                 }
             });
             
@@ -669,13 +698,14 @@
                     Bạn bị trừ ${-SCORE_HINT} điểm. Chuỗi đúng bị RESET! Chuyển câu sau 30 giây.
                 `;
                 
+                updateCaptchaStats(currentCaptcha.file, false);
+
                 captchaInput.value = correctAnswer;
                 
-                // questionsAnswered++; // Đã tăng trong setRandomCaptcha
                 btnHint.classList.add('hidden'); 
 
                 if (questionsAnswered < MAX_QUESTIONS) {
-                    setTimeout(setRandomCaptcha, 30000); // Chờ 30 giây
+                    setTimeout(setRandomCaptcha, 30000); 
                 } else {
                     endGame(); 
                 }
@@ -694,14 +724,14 @@
                 const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):', playerName === 'Khách' ? '' : playerName);
                 if (nameInput && nameInput.trim() !== '') {
                     playerName = nameInput.trim();
-                    localStorage.setItem('playerName', playerName); // Lưu tên vào LocalStorage
+                    localStorage.setItem('playerName', playerName); 
                     playerNameSpan.textContent = playerName; 
                     playerNameGameSpan.textContent = playerName;
                     alert(`Chào mừng, ${playerName}! Bạn đã sẵn sàng chơi!`);
                 }
             });
 
-            // --- 11. Hàm Hiển thị Top 10 ONLINE ---
+            // --- 11. Hiển thị Top 10 ONLINE ---
             async function displayTop10Online() {
                 if (!db) {
                     top10List.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase.</li>';
@@ -725,7 +755,6 @@
                         if (data.score > maxScore) maxScore = data.score;
                     });
                     
-                    // Cập nhật điểm cao nhất
                     highestScoreSpan.textContent = maxScore;
 
                     top10List.innerHTML = ''; 
@@ -747,9 +776,72 @@
                 }
             }
             
-            // --- 12. Hàm Lắng Nghe Thông Báo Online ---
-            function setupOnlineNotificationListener() {
+            // --- 11.5. Hiển thị Thống kê Câu hỏi ---
+            async function displayTopStats() {
                 if (!db) {
+                    topCorrectList.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase.</li>';
+                    topIncorrectList.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase.</li>';
+                    return;
+                }
+                
+                const getCaptchaName = (file) => {
+                    const captcha = ALL_CAPTCHAS_DATA.find(c => c.file === file);
+                    return captcha ? `**${captcha.answer}** (${file})` : file;
+                };
+
+                // --- Top Đúng Nhất ---
+                try {
+                    const correctSnapshot = await db.collection('captcha_stats')
+                        .orderBy('correct_count', 'desc')
+                        .limit(5)
+                        .get();
+                        
+                    topCorrectList.innerHTML = '';
+                    if (correctSnapshot.empty) {
+                        topCorrectList.innerHTML = '<li>Chưa có dữ liệu.</li>';
+                    } else {
+                        correctSnapshot.forEach((doc, index) => {
+                            const data = doc.data();
+                            const li = document.createElement('li');
+                            const name = getCaptchaName(data.file);
+                            li.innerHTML = `<span><strong>#${index + 1}</strong> ${name}</span> <span>${data.correct_count || 0} lần</span>`;
+                            topCorrectList.appendChild(li);
+                        });
+                    }
+                } catch (e) {
+                    console.error("[Firebase]: Lỗi tải Top Đúng:", e);
+                    topCorrectList.innerHTML = '<li>Lỗi tải thống kê.</li>';
+                }
+
+                // --- Top Sai Nhất ---
+                try {
+                    const incorrectSnapshot = await db.collection('captcha_stats')
+                        .orderBy('incorrect_count', 'desc')
+                        .limit(5)
+                        .get();
+                        
+                    topIncorrectList.innerHTML = '';
+                    if (incorrectSnapshot.empty) {
+                        topIncorrectList.innerHTML = '<li>Chưa có dữ liệu.</li>';
+                    } else {
+                        incorrectSnapshot.forEach((doc, index) => {
+                            const data = doc.data();
+                            const li = document.createElement('li');
+                            const name = getCaptchaName(data.file);
+                            li.innerHTML = `<span><strong>#${index + 1}</strong> ${name}</span> <span>${data.incorrect_count || 0} lần</span>`;
+                            topIncorrectList.appendChild(li);
+                        });
+                    }
+                } catch (e) {
+                    console.error("[Firebase]: Lỗi tải Top Sai:", e);
+                    topIncorrectList.innerHTML = '<li>Lỗi tải thống kê.</li>';
+                }
+            }
+
+
+            // --- 12. Lắng Nghe Thông Báo Online ---
+            function setupOnlineNotificationListener() {
+                 if (!db) {
                     onlineAnnouncementText.textContent = 'Lỗi kết nối Firebase.';
                     return;
                 }
@@ -805,9 +897,9 @@
             // --- Khởi chạy các chức năng ban đầu ---
             createRainEffect();
             displayTop10Online();
+            displayTopStats(); 
             setupOnlineNotificationListener(); 
             
-            // Cập nhật câu hỏi ban đầu trên Game Screen (chỉ để hiển thị text)
             questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
         });
     </script>
