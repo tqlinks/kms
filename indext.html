@@ -1,37 +1,96 @@
-<body>
-    <div class="rain-container"></div> 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapleStory Captcha Challenge</title>
+    
+    <style>
+        /* ... (Phần CSS cũ: body, .container, h1, .controls, #game-area, #captcha-image, #captcha-input, #btn-submit, #btn-hint, #feedback-message, .hidden, .score-board, .score-item, .score-value, #top10-area, #top10-list) ... */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+        /* ... (Các rule CSS khác như .rain-container, .rain-drop, @keyframes fall) ... */
 
-    <div id="start-screen" class="container">
-        <h1>MapleStory Captcha Challenge 0796750236</h1>
+        /* 📣 CSS CHO THANH THÔNG BÁO ONLINE */
+        #online-announcement-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 10px;
+            background-color: #ffe0b2; /* Màu nền vàng nhạt */
+            color: #e65100; /* Màu chữ cam */
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ffcc80;
+            overflow: hidden; /* Quan trọng cho hiệu ứng chạy chữ */
+            position: relative;
+            z-index: 5;
+        }
+        #online-announcement-text {
+            margin: 0;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 1.1em;
+            /* Animation chạy chữ sẽ được thêm bằng JS để dễ kiểm soát hơn */
+        }
+
+        /* 🌧️ HIỆU ỨNG MƯA */
+        .rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; 
+            z-index: -1; 
+            pointer-events: none; 
+        }
+        .rain-drop {
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(173, 216, 230, 0.8), rgba(173, 216, 230, 0.3));
+            width: 1px;
+            height: 30px;
+            transform: translateY(-100vh);
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="rain-container"></div> 
+    
+    <div class="container">
+        <h1>MapleStory Captcha Challenge</h1>
 
         <div class="score-board">
             <div class="score-item">
                 Người chơi: <span id="player-name">Khách</span>
-            </div>
-            <div class="score-item">
-                Điểm Cao Nhất: <span id="highest-score" class="score-value">0</span>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="btn-register">📝 Ghi Danh</button>
-            <button id="btn-start">▶️ BẮT ĐẦU TRÒ CHƠI</button>
-        </div>
-        
-        <div id="top10-area">
-            <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
-            <ul id="top10-list">
-                <li>Đang tải...</li>
-            </ul>
-        </div>
-    </div>
-    
-    <div id="game-screen" class="container hidden">
-        <h2>Challenge Đang Diễn Ra</h2>
-        
-        <div class="score-board game-status">
-            <div class="score-item">
-                Người chơi: <span id="player-name-game">Khách</span>
             </div>
             <div class="score-item">
                 Điểm: <span id="current-score" class="score-value">0</span>
@@ -41,7 +100,13 @@
             </div>
         </div>
 
-        <div id="game-area">
+        <div class="controls">
+            <button id="btn-register">📝 Ghi Danh</button>
+            <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
+            <button id="btn-top10">🏆 Bảng Xếp Hạng</button>
+        </div>
+        
+        <div id="game-area" class="hidden">
             <img id="captcha-image" src="" alt="Captcha Image">
             <input type="text" id="captcha-input" placeholder="Nhập đáp án ở đây...">
             <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 10px;">
@@ -50,13 +115,39 @@
             </div>
             <p id="feedback-message">Sẵn sàng...</p>
         </div>
-        
-        <button id="btn-exit" style="background-color: #8e44ad; color: white; margin-top: 15px;">⬅️ Thoát Trò Chơi</button>
-    </div>
 
+        <div id="top10-area" class="container">
+            <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
+            <ul id="top10-list">
+                <li>Đang tải...</li>
+            </ul>
+        </div>
+    </div>
+    
     <div id="online-announcement-container">
         <p id="online-announcement-text" style="margin: 0; white-space: nowrap; font-weight: bold; font-size: 1.1em;"></p>
     </div>
 
-    </body>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+  apiKey: "AIzaSyAXUYaRgG63eVVDpfiQAsWbZVr9Ze_8JPA",
+  authDomain: "kmscaptcha.firebaseapp.com",
+  projectId: "kmscaptcha",
+  storageBucket: "kmscaptcha.firebasestorage.app",
+  messagingSenderId: "164719590340",
+  appId: "1:164719590340:web:b8d3f7e0a8f2c1de3c4291"
+};
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(); 
+        window.db = db;
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
