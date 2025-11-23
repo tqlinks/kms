@@ -1,23 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Khai báo các phần tử DOM ---
+    // MÀN HÌNH CHUNG
+    const startScreen = document.getElementById('start-screen'); // MỚI
+    const gameScreen = document.getElementById('game-screen');   // MỚI
     const btnStart = document.getElementById('btn-start');
-    const btnSubmit = document.getElementById('btn-submit');
-    const btnTop10 = document.getElementById('btn-top10');
     const btnRegister = document.getElementById('btn-register');
-    const btnHint = document.getElementById('btn-hint'); 
+    const btnExit = document.getElementById('btn-exit');       // MỚI
     
-    const gameArea = document.getElementById('game-area');
-    const top10Area = document.getElementById('top10-area');
+    // MÀN HÌNH START (PHẦN 1)
+    const highestScoreSpan = document.getElementById('highest-score'); // MỚI
+    const top10List = document.getElementById('top10-list');
+    
+    // MÀN HÌNH GAME (PHẦN 2)
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnHint = document.getElementById('btn-hint'); 
     const captchaImage = document.getElementById('captcha-image');
     const captchaInput = document.getElementById('captcha-input');
     const feedbackMessage = document.getElementById('feedback-message');
     const currentScoreSpan = document.getElementById('current-score');
     const questionCountSpan = document.getElementById('question-count');
-    const playerNameSpan = document.getElementById('player-name');
-    const top10List = document.getElementById('top10-list');
+    const playerNameSpan = document.getElementById('player-name'); // Tên trên Start Screen
+    const playerNameGameSpan = document.getElementById('player-name-game'); // Tên trên Game Screen
+    
     const onlineAnnouncementText = document.getElementById('online-announcement-text');
-    const onlineAnnouncementContainer = document.getElementById('online-announcement-container');
-
+    
     const db = window.db; 
 
     // --- Biến Trạng thái Trò chơi ---
@@ -38,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const SCORE_TIMEOUT = -100;
     const SCORE_HINT = -100;
 
-    // --- Dữ liệu 99 Captcha (Đã cập nhật) ---
+    // --- Dữ liệu 99 Captcha (Giữ nguyên) ---
     const ALL_CAPTCHAS_DATA = [
         { file: '1.gif', answer: '조수블루습격자' }, { file: '2.gif', answer: '이프손잡이' }, { file: '3.gif', answer: '레이벌쳐' },
         { file: '4.gif', answer: '에드엘리' }, { file: '5.gif', answer: '프기갑병' }, { file: '6.gif', answer: '새우가면' },
@@ -63,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { file: '61.gif', answer: '밀라타우로마' }, { file: '62.gif', answer: '키누아리솔' }, { file: '63.gif', answer: '라솔빙하수토기' }, 
         { file: '64.gif', answer: '스타우로마시' }, { file: '65.gif', answer: '한에르다스' }, { file: '66.gif', answer: '시그너스' },
         { file: '67.gif', answer: '물갈색모래토끼' }, { file: '68.gif', answer: '크리스탈게이' }, { file: '69.gif', answer: '니쟁기소은월' },
-        { file: '70.gif', answer: '강력한꽃덤불' }, { file: '71.gif', answer: '킨에반한겨울' }, { file: '72.gif', answer: '호문몽땅차크로' },
+        { file: '70.gif', answer: '강력한꽃덤불' }, { file: '71.gif', answer: '킨ए반한겨울' }, { file: '72.gif', answer: '호문몽땅차크로' },
         { file: '73.gif', answer: '버스스켈레톤나' }, { file: '74.gif', answer: '어둠의집행자' }, { file: '75.gif', answer: '라이얀삼단지' },
         { file: '76.gif', answer: '비영웅을알아보' }, { file: '77.gif', answer: '스티온이카르트' }, { file: '78.gif', answer: '그릴스화' },
         { file: '79.gif', answer: '톤밀리샤' }, { file: '80.gif', answer: '나인하트' }, { file: '81.gif', answer: '트로이어' },
@@ -128,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         availableCaptchas.splice(randomIndex, 1);
 
-        // THAY ĐỔI ĐƯỜNG DẪN: Bỏ "img/"
+        // ĐƯỜNG DẪN KHÔNG CÓ "img/"
         captchaImage.src = `${currentCaptcha.file}`;
         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
         captchaInput.value = ''; 
@@ -139,24 +145,31 @@ document.addEventListener('DOMContentLoaded', () => {
         startTimer();
     }
     
-    // --- 4. Hàm Bắt đầu Trò chơi ---
+    // -----------------------------------------------------------------
+    // --- 4. Hàm Bắt đầu Trò chơi (Chuyển Giao diện) ---
+    // -----------------------------------------------------------------
     btnStart.addEventListener('click', () => {
         if (playerName === 'Khách') {
             alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
             return;
         }
         
+        // CHUYỂN GIAO DIỆN
+        startScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        
+        // Cập nhật tên người chơi trên màn hình Game
+        playerNameGameSpan.textContent = playerName; 
+
         score = 0;
         questionsAnswered = 0;
         consecutiveCorrects = 0; 
         updateScore(0);
         availableCaptchas = [...ALL_CAPTCHAS_DATA];
         
-        gameArea.classList.remove('hidden');
-        top10Area.classList.add('hidden');
         setRandomCaptcha();
     });
-
+    
     // -----------------------------------------------------------------
     // --- 5. Hàm Lưu Top Score ONLINE (Firebase Firestore) ---
     // -----------------------------------------------------------------
@@ -196,18 +209,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
     
     
-    // --- 6. Hàm Kết thúc Trò chơi ---
-    async function endGame() {
+    // -----------------------------------------------------------------
+    // --- 6. Hàm Kết thúc/Thoát Trò chơi (Chuyển Giao diện) ---
+    // -----------------------------------------------------------------
+    async function exitToStartScreen(isEndGame = false) {
         clearInterval(timer);
-        btnHint.classList.add('hidden');
-        alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
+        currentCaptcha = null; // Dừng trạng thái game
+
+        if (isEndGame) {
+            alert(`🎉 CHÚC MỪNG ${playerName}! Bạn đã hoàn thành ${MAX_QUESTIONS} câu hỏi với tổng điểm là: ${score}!`);
+            await saveTopScoreOnline(playerName, score); 
+        } else {
+            // Nếu người chơi tự thoát giữa chừng
+            if (questionsAnswered > 0) {
+                 await saveTopScoreOnline(playerName, score); 
+            }
+        }
         
-        await saveTopScoreOnline(playerName, score); 
-        
-        gameArea.classList.add('hidden');
+        // CHUYỂN VỀ GIAO DIỆN KHỞI ĐỘNG
+        gameScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
         displayTop10Online(); 
     }
+    
+    function endGame() {
+        exitToStartScreen(true);
+    }
+    
+    btnExit.addEventListener('click', () => {
+        if (confirm('Bạn có chắc chắn muốn thoát game? Điểm hiện tại sẽ được lưu (nếu dương).')) {
+            exitToStartScreen(false);
+        }
+    });
 
+    // -----------------------------------------------------------------
+    
     // --- 7. Hàm Gửi Thông Báo Chuỗi Đúng ---
     async function sendOnlineNotification(name, currentScore, streak) {
         if (!db || streak < 10) return;
@@ -227,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- 8. Kiểm tra Đáp án ---
+    // --- 8. Kiểm tra Đáp án (Giữ nguyên logic điểm) ---
     btnSubmit.addEventListener('click', () => {
         if (!currentCaptcha) {
              feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
@@ -280,9 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // --- 9. Chức năng Xem Đáp án (Gợi ý) ---
+    // --- 9. Chức năng Xem Đáp án (30s chờ) ---
     btnHint.addEventListener('click', () => {
         if (!currentCaptcha || score < -SCORE_HINT) { 
+             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
+             return;
         }
         
         clearInterval(timer);
@@ -292,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const correctAnswer = currentCaptcha.answer.trim();
         const userInput = captchaInput.value.trim(); 
         
-        // HIỂN THỊ SO SÁNH ĐÁP ÁN
         feedbackMessage.innerHTML = `
             💡 ĐÁP ÁN ĐÚNG: "<strong>${correctAnswer}</strong>" <br>
             Bạn đã gõ: "<strong>${userInput}</strong>" <br>
@@ -305,7 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnHint.classList.add('hidden'); 
 
         if (questionsAnswered < MAX_QUESTIONS) {
-            // THAY ĐỔI THỜI GIAN CHỜ TỪ 3000ms (3s) LÊN 30000ms (30s)
             setTimeout(setRandomCaptcha, 30000); 
         } else {
             endGame(); 
@@ -325,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):');
         if (nameInput && nameInput.trim() !== '') {
             playerName = nameInput.trim();
-            playerNameSpan.textContent = playerName;
+            playerNameSpan.textContent = playerName; // Cập nhật tên trên Start Screen
             alert(`Chào mừng, ${playerName}! Bạn đã sẵn sàng chơi!`);
         }
     });
@@ -335,13 +371,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
     async function displayTop10Online() {
         if (!db) {
-            top10List.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase. Kiểm tra cấu hình trong index.html.</li>';
+            top10List.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase.</li>';
             return;
         } 
 
         top10List.innerHTML = '<li>Đang tải bảng xếp hạng...</li>';
-        gameArea.classList.add('hidden');
-        top10Area.classList.remove('hidden');
 
         try {
             const snapshot = await db.collection('top_scores')
@@ -351,9 +385,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 .get();
 
             let topScores = [];
+            let maxScore = 0;
             snapshot.forEach(doc => {
-                topScores.push(doc.data());
+                const data = doc.data();
+                topScores.push(data);
+                if (data.score > maxScore) maxScore = data.score;
             });
+            
+            // Cập nhật điểm cao nhất của người chơi hiện tại trên màn hình Start
+            highestScoreSpan.textContent = maxScore;
 
             top10List.innerHTML = ''; 
 
@@ -374,12 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    btnTop10.addEventListener('click', displayTop10Online);
-    
-    // -----------------------------------------------------------------
     // --- 12. Hàm Lắng Nghe Thông Báo Online ---
-    // -----------------------------------------------------------------
     function setupOnlineNotificationListener() {
+        // ... (Giữ nguyên logic lắng nghe thông báo) ...
         if (!db) {
             onlineAnnouncementText.textContent = 'Lỗi kết nối Firebase.';
             return;
@@ -407,9 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // -----------------------------------------------------------------
     // --- 13. KHỞI TẠO HIỆU ỨNG MƯA & Listener ---
-    // -----------------------------------------------------------------
     function createRainEffect() {
         const container = document.querySelector('.rain-container');
         const numberOfDrops = 100;
@@ -439,6 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
     displayTop10Online();
     setupOnlineNotificationListener(); 
     
+    // Cập nhật câu hỏi ban đầu trên Game Screen
     questionCountSpan.textContent = `0/${MAX_QUESTIONS} (${TIME_LIMIT}s)`;
 });
-
