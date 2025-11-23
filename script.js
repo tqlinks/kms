@@ -246,18 +246,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // --- 8. Chức năng Xem Đáp án (Gợi ý) ---
+    // --- 8. Chức năng Xem Đáp án (Gợi ý) ---
     btnHint.addEventListener('click', () => {
         if (!currentCaptcha || score < -SCORE_HINT) { 
-            
+             alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
+             return;
         }
         
         clearInterval(timer);
-        updateScore(SCORE_HINT); 
+        updateScore(SCORE_HINT); // Trừ 100 điểm
         
         const correctAnswer = currentCaptcha.answer.trim();
-        feedbackMessage.textContent = `💡 ĐÁP ÁN: "${correctAnswer}". Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.`;
+        const userInput = captchaInput.value.trim(); // Lấy đáp án người chơi đã gõ
         
-        captchaInput.value = correctAnswer;
+        // --- PHẦN CẬP NHẬT MỚI: Hiển thị cả đáp án người chơi và đáp án đúng ---
+        feedbackMessage.innerHTML = `
+            💡 ĐÁP ÁN ĐÚNG: "<strong>${correctAnswer}</strong>" <br>
+            Bạn đã gõ: "<strong>${userInput}</strong>" <br>
+            Bạn bị trừ ${-SCORE_HINT} điểm. Chuyển câu sau 30 giây.
+        `;
+        // --- KẾT THÚC PHẦN CẬP NHẬT MỚI ---
+        
+        captchaInput.value = correctAnswer; // Điền đáp án đúng vào ô input
         
         questionsAnswered++; 
         btnHint.classList.add('hidden'); 
@@ -370,5 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createRainEffect();
 });
+
 
 
