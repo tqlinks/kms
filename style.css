@@ -1,148 +1,298 @@
-/* Thiết lập chung */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #000;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    overflow: hidden; 
+/* ========================================= */
+/* 1. KHU VỰC CHUNG VÀ BỐ CỤC */
+/* ========================================= */
+:root {
+    --primary-color: #2c3e50;    /* Màu xanh đậm (Đá/Gỗ) */
+    --secondary-color: #f39c12;  /* Màu cam/vàng (Điểm nhấn) */
+    --accent-color: #e74c3c;     /* Màu đỏ (Lỗi/Nổi bật) */
+    --bg-color: #ecf0f1;         /* Màu nền sáng */
+    --font-color: #34495e;       /* Màu chữ đậm */
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-deep: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Hiệu ứng mưa (Dùng CSS Animation đơn giản) */
-#rain-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; 
-    background: 
-        /* Tạo các "hạt mưa" ngẫu nhiên với gradient */
-        radial-gradient(ellipse at left 50px top 30px, rgba(170, 200, 255, 0.4) 1px, transparent 1px),
-        radial-gradient(ellipse at right 80px bottom 60px, rgba(170, 200, 255, 0.4) 1px, transparent 1px),
-        radial-gradient(ellipse at center 120px, rgba(170, 200, 255, 0.4) 1px, transparent 1px);
-    background-size: 150px 150px, 200px 200px, 180px 180px;
-    animation: rain-fall 5s linear infinite;
+* {
+    box-sizing: border-box;
 }
-/* Thiết lập cho vùng chứa mưa */
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    margin: 20px auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow-deep);
+    width: 90%;
+    max-width: 600px;
+    border: 3px solid var(--primary-color);
+    position: relative;
+    z-index: 10;
+}
+
+h1 {
+    text-align: center;
+    color: var(--primary-color);
+    text-shadow: 1px 1px 0 #bdc3c7;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+}
+
+/* ========================================= */
+/* 2. BẢNG ĐIỂM (SCORE BOARD) */
+/* ========================================= */
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    color: white;
+    box-shadow: var(--shadow-light);
+}
+
+.score-item {
+    text-align: center;
+    font-size: 0.9em;
+    padding: 5px 0;
+    font-weight: bold;
+}
+
+.score-value {
+    display: block;
+    font-size: 1.5em;
+    color: var(--secondary-color);
+    margin-top: 5px;
+}
+
+
+/* ========================================= */
+/* 3. NÚT ĐIỀU KHIỂN CHUNG */
+/* ========================================= */
+.controls {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    flex-grow: 1;
+    text-transform: uppercase;
+}
+
+/* Nút Ghi Danh & Bảng Xếp Hạng */
+#btn-register, #btn-top10 {
+    background-color: var(--font-color);
+    color: white;
+    border-bottom: 3px solid #7f8c8d;
+}
+
+#btn-register:hover, #btn-top10:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-light);
+}
+
+/* Nút Bắt Đầu */
+#btn-start {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    border-bottom: 3px solid #e67e22;
+}
+
+#btn-start:hover {
+    background-color: #e67e22;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-light);
+}
+
+
+/* ========================================= */
+/* 4. KHU VỰC CHƠI GAME */
+/* ========================================= */
+#game-area {
+    text-align: center;
+    padding: 15px;
+    border: 2px dashed #bdc3c7;
+    border-radius: 8px;
+}
+
+#captcha-image {
+    width: 100%;
+    max-width: 450px;
+    height: auto;
+    border: 5px solid var(--primary-color);
+    border-radius: 6px;
+    margin-bottom: 15px;
+    background-color: #ecf0f1; /* Nền nhẹ cho ảnh GIF */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+#captcha-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2em;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#captcha-input:focus {
+    border-color: var(--secondary-color);
+}
+
+/* Nút Gửi Đáp Án & Gợi Ý */
+#btn-submit {
+    background-color: #2ecc71; /* Xanh lá */
+    color: white;
+    border-bottom: 3px solid #27ae60;
+}
+
+#btn-submit:hover {
+    background-color: #27ae60;
+}
+
+#btn-hint {
+    background-color: var(--accent-color); /* Đỏ */
+    color: white;
+    border-bottom: 3px solid #c0392b;
+}
+
+#btn-hint:hover {
+    background-color: #c0392b;
+}
+
+#feedback-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    min-height: 40px;
+}
+
+/* ========================================= */
+/* 5. TOP 10 (BẢNG XẾP HẠNG) */
+/* ========================================= */
+#top10-area h2 {
+    color: var(--accent-color);
+    text-align: center;
+}
+
+#top10-list {
+    list-style: none;
+    padding: 0;
+}
+
+#top10-list li {
+    background-color: #f9f9f9;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    border-left: 5px solid var(--secondary-color);
+    display: flex;
+    justify-content: space-between;
+    font-weight: 500;
+}
+
+#top10-list li:nth-child(1) {
+    background-color: #fffacd; /* Vàng lấp lánh */
+    border-left: 5px solid gold;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+
+/* ========================================= */
+/* 6. THÔNG BÁO ONLINE (MARQUEE) */
+/* ========================================= */
+#online-announcement-container {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 10px;
+    background-color: #ffc; /* Vàng nhạt */
+    color: var(--primary-color); 
+    padding: 5px 15px;
+    border-radius: 8px;
+    border: 2px solid var(--secondary-color);
+    overflow: hidden; 
+    box-shadow: var(--shadow-light);
+    animation: pulse 1.5s infinite alternate;
+}
+
+#online-announcement-text {
+    margin: 0;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 1.1em;
+    /* Animation: scroll-left sẽ được thêm bằng JS */
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 5px rgba(243, 156, 18, 0.7);
+    }
+    to {
+        box-shadow: 0 0 15px rgba(243, 156, 18, 1);
+    }
+}
+
+/* ========================================= */
+/* 7. HIỆU ỨNG MƯA (Nếu có) */
+/* ========================================= */
 .rain-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Quan trọng để ẩn các hạt mưa bên ngoài */
-    z-index: -1; /* Đưa mưa xuống dưới nội dung trang web */
-    pointer-events: none; /* Đảm bảo mưa không chặn các cú nhấp chuột */
+    overflow: hidden; 
+    z-index: 1; /* Đảm bảo nằm dưới các nội dung khác */
+    pointer-events: none; 
 }
-
-/* Định nghĩa một hạt mưa */
 .rain-drop {
     position: absolute;
-    background: linear-gradient(to bottom, rgba(173, 216, 230, 0.8), rgba(173, 216, 230, 0.3)); /* Màu xanh nhạt mờ */
-    width: 1px; /* Chiều rộng mỏng */
-    height: 30px; /* Chiều dài hạt mưa */
-    transform: translateY(-100vh); /* Bắt đầu từ ngoài màn hình */
-    
-    /* Thiết lập animation */
+    background: linear-gradient(to bottom, rgba(135, 206, 250, 0.8), rgba(135, 206, 250, 0.3));
+    width: 1px;
+    height: 30px;
+    transform: translateY(-100vh);
     animation-name: fall;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
 }
-
-/* Keyframes cho chuyển động rơi */
 @keyframes fall {
     to {
-        transform: translateY(100vh); /* Rơi xuống cuối màn hình */
-    }
-}
-@keyframes rain-fall {
-    from {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 500px 500px; 
+        transform: translateY(100vh);
     }
 }
 
-/* Cấu trúc Layout */
-.container {
-    padding: 20px;
-    max-width: 800px;
-    margin: 50px auto;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-}
-
-header h1 {
-    color: #ffd700;
-    text-shadow: 0 0 10px #00aaff;
-}
-
-/* Các nút */
-button {
-    padding: 10px 20px;
-    margin: 5px;
-    border: none;
-    border-radius: 5px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* Khu vực Game */
-#game-area {
-    margin-top: 20px;
-    border: 2px solid #00aaff;
-    padding: 15px;
-    border-radius: 8px;
-}
-
-#captcha-image {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    border: 1px solid #ccc;
-    display: block;
-    margin: 10px auto;
-    background-color: #fff; 
-}
-
-#input-area input {
-    padding: 10px;
-    margin-right: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 180px;
-}
-
+/* ========================================= */
+/* 8. Utility */
+/* ========================================= */
 .hidden {
-    display: none;
-}
-
-/* Thông báo phản hồi */
-#feedback-message {
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-/* Top 10 List */
-#top10-list {
-    list-style: none;
-    padding: 0;
-}
-#top10-list li {
-    background-color: rgba(255, 255, 255, 0.1);
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 1.1em;
-
+    display: none !important;
 }
