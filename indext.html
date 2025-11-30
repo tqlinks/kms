@@ -640,90 +640,98 @@
 
 
             // --- 8. Kiểm tra Đáp án (Giữ nguyên) ---
-            btnSubmit.addEventListener('click', () => {
-                // ... (Logic kiểm tra đáp án giữ nguyên) ...
-                if (!currentCaptcha) {
-                      feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
-                      return;
-                }
-                
-                clearInterval(timer);
-                
-                const userInput = captchaInput.value.trim();
-                const correctAnswer = currentCaptcha.answer.trim();
+           // --- 8. Kiểm tra Đáp án ---
+btnSubmit.addEventListener('click', () => {
+    if (!currentCaptcha) {
+         feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
+         return;
+    }
+    
+    clearInterval(timer);
+    
+    const userInput = captchaInput.value.trim(); // Lấy nội dung người dùng gõ
+    const correctAnswer = currentCaptcha.answer.trim();
 
-                if (userInput === correctAnswer) {
-                    consecutiveCorrects++;
-                    const timeBonus = timeLeft; 
-                    const streakBonus = consecutiveCorrects * 5; 
-                    const totalScoreChange = SCORE_CORRECT + timeBonus + streakBonus;
-                    
-                    updateScore(totalScoreChange); 
-                    feedbackMessage.innerHTML = `
-                        ✅ Chính xác! +${SCORE_CORRECT} điểm, +${timeBonus} điểm thưởng thời gian. 
-                        ${consecutiveCorrects > 1 ? `+${streakBonus} điểm thưởng chuỗi (${consecutiveCorrects}x)!` : ''} 
-                        Tổng cộng: +${totalScoreChange} điểm.
-                    `;
-                    
-                    if (consecutiveCorrects >= 10) {
-                        sendOnlineNotification(playerName, score, consecutiveCorrects);
-                    }
-                    
-                    updateCaptchaStats(currentCaptcha.file, true);
-                    btnHint.classList.add('hidden'); 
-                    
-                    if (questionsAnswered < MAX_QUESTIONS) {
-                        setTimeout(setRandomCaptcha, 1000); 
-                    } else {
-                        endGame();
-                    }
-                    
-                } else {
-                    consecutiveCorrects = 0; 
-                    updateScore(SCORE_INCORRECT); 
-                    feedbackMessage.textContent = `❌ Sai rồi! Đáp án đúng là: ${correctAnswer}. Chuỗi đúng bị RESET! Bạn bị trừ ${-SCORE_INCORRECT} điểm. Thử lại hoặc Xem Đáp án.`;
-                    
-                    updateCaptchaStats(currentCaptcha.file, false);
-                    captchaInput.value = ''; 
-                    captchaInput.focus();
-                    btnHint.classList.remove('hidden'); 
-                    startTimer(); 
-                }
-            });
+    if (userInput === correctAnswer) {
+        questionsAnswered++;
+        consecutiveCorrects++;
+        
+        const timeBonus = timeLeft; 
+        const streakBonus = consecutiveCorrects * 5; 
+        const totalScoreChange = SCORE_CORRECT + timeBonus + streakBonus;
+        
+        updateScore(totalScoreChange); 
+        
+        feedbackMessage.innerHTML = `
+            ✅ Chính xác! +${SCORE_CORRECT} điểm, +${timeBonus} điểm thưởng thời gian. 
+            ${consecutiveCorrects > 1 ? `+${streakBonus} điểm thưởng chuỗi (${consecutiveCorrects}x)!` : ''} 
+            Tổng cộng: +${totalScoreChange} điểm.
+        `;
+        
+        if (consecutiveCorrects >= 10) {
+            sendOnlineNotification(playerName, score, consecutiveCorrects);
+        }
+        
+        btnHint.classList.add('hidden'); 
+        
+        if (questionsAnswered < MAX_QUESTIONS) {
+            setTimeout(setRandomCaptcha, 1000); 
+        } else {
+            endGame();
+        }
+        
+    } else {
+        // --- LOGIC XỬ LÝ KHI TRẢ LỜI SAI (ĐÃ CẬP NHẬT) ---
+        consecutiveCorrects = 0; 
+        updateScore(SCORE_INCORRECT); 
+        
+        // Gán giá trị gõ sai vào input để người dùng thấy rõ
+        captchaInput.value = userInput; 
+        
+        feedbackMessage.innerHTML = `
+            ❌ Sai rồi! Chuỗi đúng bị RESET! Bạn bị trừ ${-SCORE_INCORRECT} điểm.<br>
+            Bạn đã gõ: "<strong>${userInput}</strong>".
+        `;
+        
+        captchaInput.focus();
+        
+        btnHint.classList.remove('hidden'); 
+        startTimer();
+        // --- KẾT THÚC LOGIC CẬP NHẬT ---
+    }
+});
             
-            // --- 9. Chức năng Xem Đáp án (Giữ nguyên) ---
-            btnHint.addEventListener('click', () => {
-                // ... (Logic xem đáp án giữ nguyên) ...
-                if (!currentCaptcha || score < -SCORE_HINT) { 
-                      alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
-                      return;
-                }
-                
-                clearInterval(timer);
-                consecutiveCorrects = 0; 
-                updateScore(SCORE_HINT); 
-                
-                const correctAnswer = currentCaptcha.answer.trim();
-                const userInput = captchaInput.value.trim(); 
-                
-                feedbackMessage.innerHTML = `
-                    💡 ĐÁP ÁN ĐÚNG: "<strong>${correctAnswer}</strong>" <br>
-                    Bạn đã gõ: "<strong>${userInput}</strong>" <br>
-                    Bạn bị trừ ${-SCORE_HINT} điểm. Chuỗi đúng bị RESET! Chuyển câu sau 30 giây.
-                `;
-                
-                updateCaptchaStats(currentCaptcha.file, false);
+            // --- 9. Chức năng Xem Đáp án (30s chờ) ---
+btnHint.addEventListener('click', () => {
+    if (!currentCaptcha || score < -SCORE_HINT) { 
+         alert('Bạn cần có ít nhất 100 điểm để xem đáp án!');
+         return;
+    }
+    
+    clearInterval(timer);
+    consecutiveCorrects = 0; 
+    updateScore(SCORE_HINT); 
+    
+    const correctAnswer = currentCaptcha.answer.trim();
+    const userInputAtHint = captchaInput.value.trim(); // Lấy nội dung người dùng đang gõ
+    
+    feedbackMessage.innerHTML = `
+        💡 ĐÁP ÁN ĐÚNG: "<strong>${correctAnswer}</strong>" <br>
+        Bạn đã gõ: "<strong>${userInputAtHint}</strong>" <br>
+        Bạn bị trừ ${-SCORE_HINT} điểm. Chuỗi đúng bị RESET! Chuyển câu sau 30 giây.
+    `;
+    
+    captchaInput.value = correctAnswer;
+    
+    questionsAnswered++; 
+    btnHint.classList.add('hidden'); 
 
-                captchaInput.value = correctAnswer;
-                
-                btnHint.classList.add('hidden'); 
-
-                if (questionsAnswered < MAX_QUESTIONS) {
-                    setTimeout(setRandomCaptcha, 30000); 
-                } else {
-                    endGame(); 
-                }
-            });
+    if (questionsAnswered < MAX_QUESTIONS) {
+        setTimeout(setRandomCaptcha, 30000); 
+    } else {
+        endGame(); 
+    }
+});
 
 
             // Cho phép Enter để submit
@@ -996,6 +1004,7 @@
 
 </body>
 </html>
+
 
 
 
