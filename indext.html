@@ -331,7 +331,12 @@
     <div id="online-announcement-container">
         <p id="online-announcement-text"></p>
     </div>
-
+    <div id="online-users-area" class="container">
+            <h2>👥 Người chơi đang online</h2>
+            <ul id="online-player-list">
+            <li>Vui lòng Ghi Danh để kiểm tra...</li>
+            </ul>
+     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -352,12 +357,7 @@
     </script>
 
     <script>
-        <div id="online-users-area" class="container">
-            <h2>👥 Người chơi đang online</h2>
-            <ul id="online-player-list">
-            <li>Vui lòng Ghi Danh để kiểm tra...</li>
-            </ul>
-        </div>
+        
         document.addEventListener('DOMContentLoaded', () => {
             const db = window.db; 
             
@@ -996,6 +996,7 @@
 
 </body>
 </html>
+
 
 
 
