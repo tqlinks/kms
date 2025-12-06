@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MapleStory Captcha Challenge - 0796750236</title>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
     <style>
         /* --- 1. PHONG CÁCH CHUNG & NỀN (GAME UI) --- */
         body {
@@ -128,8 +131,8 @@
         
         .controls button:active,
         #game-area button:active {
-             transform: translateY(2px);
-             box-shadow: 0 2px #0D47A1;
+            transform: translateY(2px);
+            box-shadow: 0 2px #0D47A1;
         }
 
         #btn-start {
@@ -193,6 +196,7 @@
             overflow: hidden;
             position: relative;
             z-index: 5;
+            text-align: center; /* Đã thêm để căn giữa ban đầu */
         }
         #online-announcement-text {
             margin: 0;
@@ -200,6 +204,8 @@
             font-weight: bold;
             font-size: 1.1em;
             display: inline-block;
+            animation: scroll-left 15s linear infinite; /* Kích hoạt animation cuộn */
+            padding-left: 100%; /* Bắt đầu ngoài cùng bên phải */
         }
 
         @keyframes scroll-left {
@@ -268,50 +274,44 @@
         <div id="start-screen">
             
             <div class="main-col">
-                 <div class="score-board">
-                     <div class="score-item">
-                         Người chơi: <span id="player-name">Khách</span>
-                     </div>
-                     <div class="score-item">
-                         Điểm cao nhất: <span id="highest-score" class="score-value">0</span>
-                     </div>
-                 </div>
+                <div class="score-board">
+                    <div class="score-item">
+                        Người chơi: <span id="player-name">Khách</span>
+                    </div>
+                    <div class="score-item">
+                        Điểm cao nhất: <span id="highest-score" class="score-value">0</span>
+                    </div>
+                </div>
 
-                 <div class="controls">
-                     <button id="btn-register">📝 Ghi Danh</button>
-                     <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
-                 </div>
-                 
-                 <div id="top10-area" style="margin-top: 30px;">
-                     <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
-                     <ul id="top10-list">
-                         <li>Đang tải...</li>
-                     </ul>
-                 </div>
-                 <div id="online-status-area" style="margin-top: 30px;">
-                     <h2>🌐 Người Chơi Online (<span id="online-count">0</span>)</h2>
-                     <ul id="online-list" class="stats-list">
-                     <li>Đang tải...</li>
-                 </ul>
-</div>
-            </div>
+                <div class="controls">
+                    <button id="btn-register">📝 Ghi Danh</button>
+                    <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
+                </div>
+                
+                <div id="top10-area" style="margin-top: 30px;">
+                    <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
+                    <ul id="top10-list">
+                        <li>Đang tải...</li>
+                    </ul>
+                </div>
+                </div>
             
             <div class="main-col">
                 <div id="stats-area">
                     <h2>📊 Thống Kê Captcha (Online)</h2>
                     <div style="display: flex; gap: 20px;">
-                         <div style="flex: 1;">
-                             <h3>✅ Câu hỏi DỄ nhất (Đúng)</h3>
-                             <ul id="top-correct-list" class="stats-list">
-                                 <li>Đang tải thống kê...</li>
-                             </ul>
-                         </div>
-                         <div style="flex: 1;">
-                             <h3>❌ Câu hỏi KHÓ nhất (Sai)</h3>
-                             <ul id="top-incorrect-list" class="stats-list">
-                                 <li>Đang tải thống kê...</li>
-                             </ul>
-                         </div>
+                        <div style="flex: 1;">
+                            <h3>✅ Câu hỏi DỄ nhất (Đúng)</h3>
+                            <ul id="top-correct-list" class="stats-list">
+                                <li>Đang tải thống kê...</li>
+                            </ul>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3>❌ Câu hỏi KHÓ nhất (Sai)</h3>
+                            <ul id="top-incorrect-list" class="stats-list">
+                                <li>Đang tải thống kê...</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -333,7 +333,7 @@
             </div>
 
             <div id="game-area">
-                <img id="captcha-image" src="" alt="Captcha Image">
+                <img id="captcha-image" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Captcha Image"> 
                 <input type="text" id="captcha-input" placeholder="Nhập đáp án ở đây..." autocomplete="off">
                 <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 10px;">
                     <button id="btn-submit" style="flex-grow: 1;">✅ Gửi Đáp Án</button>
@@ -349,23 +349,21 @@
         <p id="online-announcement-text"></p>
     </div>
     <div id="online-users-area" class="container">
-         <h2>👥 Người chơi đang online</h2>
-         <ul id="online-player-list">
-         <li>Vui lòng Ghi Danh để kiểm tra...</li>
-         </ul>
+        <h2>👥 Người chơi đang online (<span id="online-count">0</span>)</h2>
+        <ul id="online-player-list">
+            <li>Vui lòng Ghi Danh để kiểm tra...</li>
+        </ul>
     </div>
     
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V1.2.1</strong> | 
+        <strong>Phiên bản hiện tại: V1.2.1 (FIXED)</strong> | 
         <span id="next-update-time">Lần cập nhật gần nhất: 12:45 PM, 05/12/2025.</span>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script>
         // --- 0. KHỞI TẠO FIREBASE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAXUYaRgG63eVVDpfiQAsWbZVr9Ze_8JPA",
+            apiKey: "AIzaSyAXUYaRgG63eVVDpfiQAsWbZVr9Ze_8JPA", // CẨN THẬN: API KEY CÔNG KHAI
             authDomain: "kmscaptcha.firebaseapp.com",
             projectId: "kmscaptcha",
             storageBucket: "kmscaptcha.firebasestorage.app",
@@ -375,24 +373,155 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         window.db = db;
+
+        // Thư mục chứa ảnh Captcha (PHẢI CÓ)
+        const CAPTCHA_IMAGE_PATH = 'captchas/'; 
     </script>
 
     <script>
         
-        // --- 0.2. CÁC HÀM PLACEHOLDER (CHƯA THỰC HIỆN) ---
-        // Giữ để tránh lỗi "function not found" trong các hàm gọi khác
+        // --- 0.2. CÁC HÀM XỬ LÝ ONLINE VÀ HIỂN THỊ DỮ LIỆU FIREBASE ---
+
+        // Hàm 1: Đọc và Hiển thị Top 10 Bảng Xếp Hạng
+        function displayTop10Online() {
+            if (!db) return;
+            const top10List = document.getElementById('top10-list');
+            top10List.innerHTML = '<li>Đang tải...</li>';
+
+            db.collection('top_scores').orderBy('score', 'desc').limit(10).get()
+                .then((snapshot) => {
+                    top10List.innerHTML = '';
+                    if (snapshot.empty) {
+                        top10List.innerHTML = '<li>Chưa có ai ghi điểm. Hãy là người đầu tiên!</li>';
+                        return;
+                    }
+                    snapshot.forEach((doc, index) => {
+                        const data = doc.data();
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span>#${index + 1} - ${data.name}</span>
+                            <span>${data.score} điểm</span>
+                        `;
+                        top10List.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error("Lỗi khi tải Top 10:", error);
+                    top10List.innerHTML = '<li>Lỗi tải dữ liệu.</li>';
+                });
+        }
+        
+        // Hàm 2: Đọc và Hiển thị Thống kê Captcha (Dễ nhất/Khó nhất)
         function displayTopStats() {
-            console.log("Placeholder: Đang hiển thị thống kê Captcha (chưa có logic truy vấn Firebase)");
+            if (!db) return;
+            const topCorrectList = document.getElementById('top-correct-list');
+            const topIncorrectList = document.getElementById('top-incorrect-list');
+            topCorrectList.innerHTML = '<li>Đang tải thống kê...</li>';
+            topIncorrectList.innerHTML = '<li>Đang tải thống kê...</li>';
+
+            // Top Correct (Dễ nhất: nhiều correct nhất)
+            db.collection('captcha_stats').orderBy('correct_count', 'desc').limit(5).get()
+                .then(snapshot => {
+                    topCorrectList.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span>${data.file}</span> <span>Đúng: ${data.correct_count}</span>`;
+                        topCorrectList.appendChild(li);
+                    });
+                });
+
+            // Top Incorrect (Khó nhất: nhiều incorrect nhất)
+            db.collection('captcha_stats').orderBy('incorrect_count', 'desc').limit(5).get()
+                .then(snapshot => {
+                    topIncorrectList.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span>${data.file}</span> <span>Sai: ${data.incorrect_count}</span>`;
+                        topIncorrectList.appendChild(li);
+                    });
+                });
         }
-        function trackUserPresence() {
-            console.log("Placeholder: Đang theo dõi người dùng online (chưa có logic Firebase)");
+        
+        // Hàm 3: Theo dõi trạng thái Online (Dùng field "last_active")
+        function trackUserPresence(playerName) {
+            if (!db || playerName === 'Khách') return;
+            
+            const userRef = db.collection('online_users').doc(playerName);
+            
+            // Cập nhật timestamp mỗi 15 giây
+            setInterval(() => {
+                userRef.set({
+                    name: playerName,
+                    last_active: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }, 15000);
+            
+            // Thêm sự kiện để xóa user khi thoát trang (không đảm bảo 100%)
+            window.addEventListener('beforeunload', () => {
+                userRef.delete();
+            });
         }
+        
+        // Hàm 4: Hiển thị danh sách người chơi Online
         function displayOnlineUsers() {
-             console.log("Placeholder: Đang hiển thị danh sách người chơi online (chưa có logic Firebase)");
+            if (!db) return;
+            const onlineCountSpan = document.getElementById('online-count');
+            const onlinePlayerList = document.getElementById('online-player-list');
+            
+            // Lắng nghe thay đổi theo thời gian
+            db.collection('online_users').onSnapshot(snapshot => {
+                const now = firebase.firestore.Timestamp.now().toMillis();
+                const activeUsers = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const lastActiveMillis = data.last_active ? data.last_active.toMillis() : now;
+                    // Coi là online nếu active trong 30 giây gần nhất
+                    if (now - lastActiveMillis < 30000) { 
+                        activeUsers.push(data.name);
+                    } else {
+                         // Tự động xóa user đã out quá lâu (nếu không tự xóa được khi thoát)
+                         // doc.ref.delete(); 
+                    }
+                });
+                
+                onlineCountSpan.textContent = activeUsers.length;
+                onlinePlayerList.innerHTML = '';
+
+                if (activeUsers.length === 0) {
+                    onlinePlayerList.innerHTML = '<li>Không có người chơi nào đang online.</li>';
+                } else {
+                    activeUsers.forEach(name => {
+                        const li = document.createElement('li');
+                        li.textContent = name;
+                        onlinePlayerList.appendChild(li);
+                    });
+                }
+            }, error => {
+                console.error("Lỗi khi tải người chơi online:", error);
+            });
         }
-        function updateHighestScoreDisplay(maxScore) {
-             document.getElementById('highest-score').textContent = maxScore;
+        
+        // Hàm 5: Lắng nghe thông báo online
+        function listenForOnlineAnnouncement() {
+            if (!db) return;
+            const onlineAnnouncementText = document.getElementById('online-announcement-text');
+            
+            db.collection('notifications').doc('latest').onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    onlineAnnouncementText.textContent = `📢 ${data.message} (${new Date(data.timestamp.toDate()).toLocaleTimeString('vi-VN')})`;
+                } else {
+                    onlineAnnouncementText.textContent = "Chào mừng đến với MapleStory Captcha Challenge!";
+                }
+            }, error => {
+                 console.warn("Lỗi khi lắng nghe thông báo:", error);
+            });
         }
+
+        // --- HẾT CÁC HÀM ONLINE ---
 
         document.addEventListener('DOMContentLoaded', () => {
             const db = window.db; 
@@ -420,14 +549,13 @@
             const playerNameGameSpan = document.getElementById('player-name-game'); 
             const onlineAnnouncementText = document.getElementById('online-announcement-text');
             
-            // MỚI: DOM cho chức năng Online
             const onlineCountSpan = document.getElementById('online-count');
             const onlineList = document.getElementById('online-list');
             
             // --- Biến Trạng thái Trò chơi ---
             let score = 0;
             let playerName = localStorage.getItem('playerName') || 'Khách';
-            let questionsAnswered = 0;
+            let questionsAnswered = 0; // Đếm số câu đã được hiển thị (để tránh lỗi đếm lặp)
             const MAX_QUESTIONS = 99; 
             let currentCaptcha = null;
             let availableCaptchas = []; 
@@ -442,9 +570,8 @@
             const SCORE_TIMEOUT = -100;
             const SCORE_HINT = -100;
 
-            // --- Dữ liệu 99 Captcha (Giữ nguyên) ---
+            // --- Dữ liệu 99 Captcha (Hardcode - Cần chuyển sang backend) ---
             const ALL_CAPTCHAS_DATA = [
-                // ... (Dữ liệu Captcha giữ nguyên) ...
                 { file: '1.gif', answer: '조수블루습격자' }, { file: '2.gif', answer: '이프손잡이' }, { file: '3.gif', answer: '레이벌쳐' },
                 { file: '4.gif', answer: '에드엘리' }, { file: '5.gif', answer: '프기갑병' }, { file: '6.gif', answer: '새우가면' },
                 { file: '7.gif', answer: '키라라룽칼로' }, { file: '8.gif', answer: '트러블메이커' }, { file: '9.gif', answer: '버크손님대신관' },
@@ -482,16 +609,21 @@
             // --- End Dữ liệu Captcha ---
 
             playerNameSpan.textContent = playerName;
+            if (playerName !== 'Khách') {
+                trackUserPresence(playerName); // Bắt đầu theo dõi nếu đã Ghi Danh
+            }
+            // Khởi chạy lắng nghe thông báo và người chơi online ngay lập tức
+            listenForOnlineAnnouncement();
+            displayOnlineUsers();
 
-
-            // --- 1. Hàm Cập nhật Điểm và Số câu hỏi (Giữ nguyên) ---
+            // --- Hàm Cập nhật Điểm và Số câu hỏi ---
             function updateScore(change) {
                 score += change;
                 currentScoreSpan.textContent = score;
                 questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
             }
 
-            // --- 1.5. Cập nhật Thống kê Captcha (Giữ nguyên) ---
+            // --- Cập nhật Thống kê Captcha (Giữ nguyên) ---
             async function updateCaptchaStats(file, isCorrect) {
                 if (!db) return;
                 
@@ -509,7 +641,7 @@
             }
 
 
-            // --- 2. Quản lý Đồng hồ đếm ngược (Giữ nguyên) ---
+            // --- Quản lý Đồng hồ đếm ngược ---
             function startTimer() {
                 clearInterval(timer); 
                 timeLeft = TIME_LIMIT;
@@ -526,7 +658,7 @@
                 }, 1000); 
             }
             
-            // --- Xử lý khi hết giờ (Giữ nguyên) ---
+            // --- Xử lý khi hết giờ ---
             function handleTimeout() {
                 btnHint.classList.add('hidden'); 
                 consecutiveCorrects = 0; 
@@ -545,20 +677,21 @@
             }
 
 
-            // --- 3. Thiết lập Captcha Ngẫu nhiên (Giữ nguyên) ---
+            // --- Thiết lập Captcha Ngẫu nhiên (ĐÃ SỬA LỖI ĐƯỜNG DẪN) ---
             function setRandomCaptcha() {
                 if (availableCaptchas.length === 0) {
                     endGame();
                     return;
                 }
-                questionsAnswered++; 
                 
                 const randomIndex = Math.floor(Math.random() * availableCaptchas.length);
                 currentCaptcha = availableCaptchas[randomIndex];
 
                 availableCaptchas.splice(randomIndex, 1);
+                questionsAnswered++; // Tăng chỉ khi chọn được câu hỏi mới
 
-                captchaImage.src = `${currentCaptcha.file}`;
+                // ĐÃ SỬA: Thêm CAPTCHA_IMAGE_PATH
+                captchaImage.src = `${CAPTCHA_IMAGE_PATH}${currentCaptcha.file}`; 
                 captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
                 captchaInput.value = ''; 
                 captchaInput.focus();
@@ -568,7 +701,7 @@
                 startTimer();
             }
             
-            // --- 4. Bắt đầu Trò chơi (Giữ nguyên) ---
+            // --- Bắt đầu Trò chơi ---
             btnStart.addEventListener('click', () => {
                 if (playerName === 'Khách') {
                     alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
@@ -588,8 +721,27 @@
                 
                 setRandomCaptcha();
             });
-            
-            // --- 5. Lưu Top Score Online (Giữ nguyên) ---
+
+            // --- Ghi Danh (Register) ---
+            btnRegister.addEventListener('click', () => {
+                let newName = prompt("Nhập Tên người chơi của bạn (Max 20 ký tự):", playerName === 'Khách' ? '' : playerName);
+                if (newName === null || newName.trim() === '') {
+                    return;
+                }
+                newName = newName.trim().substring(0, 20);
+
+                if (newName !== playerName) {
+                    playerName = newName;
+                    localStorage.setItem('playerName', playerName);
+                    playerNameSpan.textContent = playerName;
+                    alert(`Ghi danh thành công với tên: ${playerName}`);
+
+                    trackUserPresence(playerName); // Bắt đầu theo dõi user mới
+                }
+            });
+
+
+            // --- Lưu Top Score Online (Giữ nguyên) ---
             async function saveTopScoreOnline(name, finalScore) {
                 if (finalScore <= 0 || !db) return; 
 
@@ -598,14 +750,15 @@
                 try {
                     const doc = await scoreRef.get();
                     let shouldUpdate = false;
+                    let currentScore = 0;
 
-                    if (!doc.exists) {
+                    if (doc.exists) {
+                        currentScore = doc.data().score;
+                    }
+
+                    if (finalScore > currentScore) {
                         shouldUpdate = true;
-                    } else {
-                        const currentScore = doc.data().score;
-                        if (finalScore > currentScore) {
-                            shouldUpdate = true;
-                        }
+                        highestScoreSpan.textContent = finalScore; // Cập nhật ngay điểm cao nhất Local
                     }
 
                     if (shouldUpdate) {
@@ -620,7 +773,7 @@
                 }
             }
             
-            // --- 6. Kết thúc/Thoát Trò chơi (Thêm trackUserPresence) ---
+            // --- Kết thúc/Thoát Trò chơi ---
             async function exitToStartScreen(isEndGame = false) {
                 clearInterval(timer);
                 currentCaptcha = null; 
@@ -636,7 +789,7 @@
                         alert(`Game đã dừng. Điểm số: ${finalScore}. Điểm sẽ được lưu.`);
                         await saveTopScoreOnline(playerName, finalScore); 
                     } else {
-                          alert(`Game đã dừng. Điểm số: ${finalScore}. Điểm không được lưu do <= 0.`);
+                         alert(`Game đã dừng. Điểm số: ${finalScore}. Điểm không được lưu do <= 0.`);
                     }
                 }
                 
@@ -656,13 +809,14 @@
                 }
             });
 
-            // --- 7. Gửi Thông Báo Chuỗi Đúng (Giữ nguyên) ---
+            // --- Gửi Thông Báo Chuỗi Đúng (Giữ nguyên) ---
             async function sendOnlineNotification(name, currentScore, streak) {
                 if (!db || streak < 10) return;
                 
                 const message = `${name} vừa đạt chuỗi ${streak} câu đúng liên tiếp! Tổng điểm: ${currentScore}.`;
                 
                 try {
+                    // Dùng set() để ghi đè thông báo mới nhất
                     await db.collection('notifications').doc('latest').set({
                         message: message,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -675,7 +829,7 @@
             }
 
 
-            // --- 8.1. HÀM XỬ LÝ ĐÁP ÁN ĐỘC LẬP (ĐÃ SỬA) ---
+            // --- HÀM XỬ LÝ ĐÁP ÁN ĐỘC LẬP (ĐÃ XÓA LỖI ĐẾM CÂU HỎI) ---
             function handleSubmitAnswer() {
                 if (!currentCaptcha) {
                     feedbackMessage.textContent = '❌ Hãy bấm "Bắt Đầu Trò Chơi"!';
@@ -689,7 +843,7 @@
 
                 if (userInput === correctAnswer) {
                     // XỬ LÝ ĐÚNG
-                    questionsAnswered++;
+                    // questionsAnswered KHÔNG TĂNG Ở ĐÂY (đã tăng trong setRandomCaptcha)
                     consecutiveCorrects++;
                     
                     const timeBonus = timeLeft; 
@@ -733,25 +887,25 @@
                     captchaInput.focus();
                     
                     btnHint.classList.remove('hidden'); 
-                    startTimer();
+                    startTimer(); // Bắt đầu lại đồng hồ để người chơi nhập lại
                 }
             }
             // --- KẾT THÚC HÀM XỬ LÝ ĐÁP ÁN ĐỘC LẬP ---
 
 
-            // --- 8. GẮN SỰ KIỆN: Kiểm tra Đáp án ---
+            // --- GẮN SỰ KIỆN: Kiểm tra Đáp án ---
             btnSubmit.addEventListener('click', handleSubmitAnswer);
             
             // Cho phép Enter để submit
             captchaInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // NGĂN CHẶN LỖI CHUYỂN CÂU LẶP LẠI
+                    e.preventDefault(); 
                     handleSubmitAnswer();
                 }
             });
 
 
-            // --- 9. Chức năng Xem Đáp án (ĐÃ XÓA ĐIỀU KIỆN 100 ĐIỂM) ---
+            // --- Chức năng Xem Đáp án (Giữ nguyên logic gốc) ---
             btnHint.addEventListener('click', () => {
                 if (!currentCaptcha) { 
                     alert('Hãy bấm "Bắt Đầu Trò Chơi"!');
@@ -769,93 +923,53 @@
                 feedbackMessage.innerHTML = `
                     💡 ĐÁP ÁN ĐÚNG: "<strong>${correctAnswer}</strong>" <br>
                     Bạn đã gõ: "<strong>${userInputAtHint}</strong>" <br>
-                    Bạn bị trừ ${-SCORE_HINT} điểm. Chuỗi đúng bị RESET! Chuyển câu sau 30 giây.
+                    Bạn bị trừ ${-SCORE_HINT} điểm. Chuỗi đúng bị RESET! Chuyển câu sau 3 giây.
                 `;
                 
                 captchaInput.value = correctAnswer;
                 
-                questionsAnswered++; 
+                // Mặc dù đây là hint, nhưng vẫn cần tính là 1 câu hỏi đã qua
+                // questionsAnswered++; // ĐÃ BỎ do setRandomCaptcha sẽ tăng
                 btnHint.classList.add('hidden'); 
 
                 if (questionsAnswered < MAX_QUESTIONS) {
-                    setTimeout(setRandomCaptcha, 30000); 
+                    setTimeout(setRandomCaptcha, 3000); // Giảm thời gian chờ xuống 3 giây cho thân thiện
                 } else {
-                    endGame(); 
+                    endGame();
                 }
             });
-
-
-            // --- 10. Hàm Ghi Danh (Cập nhật và gọi trackUserPresence) ---
-            btnRegister.addEventListener('click', () => {
-                const nameInput = prompt('Nhập tên người chơi của bạn (Tên sẽ dùng để lưu điểm):', playerName === 'Khách' ? '' : playerName);
-                if (nameInput && nameInput.trim() !== '') {
-                    const oldName = playerName;
-                    playerName = nameInput.trim();
-                    localStorage.setItem('playerName', playerName); 
-                    playerNameSpan.textContent = playerName; 
-                    playerNameGameSpan.textContent = playerName;
-                    
-                    alert(`Chào mừng, ${playerName}! Bạn đã sẵn sàng chơi!`);
-                    
-                    // MỚI: Cập nhật trạng thái online với tên mới
-                    if (oldName !== playerName && oldName !== 'Khách') {
-                           // Xóa tên cũ (nếu có)
-                           db.collection('online_users').doc(oldName).delete().catch(console.error);
-                    }
-                    trackUserPresence(); 
-                }
-            });
-
-            // --- 11. Hiển thị Top 10 ONLINE (Giữ nguyên) ---
-            async function displayTop10Online() {
-                if (!db) {
-                    top10List.innerHTML = '<li>Lỗi: Chưa kết nối được Firebase.</li>';
-                    return;
-                } 
-
-                top10List.innerHTML = '<li>Đang tải bảng xếp hạng...</li>';
-
-                try {
-                    const snapshot = await db.collection('top_scores')
-                        .orderBy('score', 'desc')
-                        .orderBy('timestamp', 'asc') 
-                        .limit(10)      
-                        .get();
-
-                    let topScores = [];
-                    let maxScore = 0;
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        topScores.push(data);
-                        if (data.score > maxScore) maxScore = data.score;
-                    });
-                    
-                    highestScoreSpan.textContent = maxScore;
-
-                    top10List.innerHTML = ''; 
-
-                    if (topScores.length === 0) {
-                        top10List.innerHTML = '<li>Chưa có người chơi nào ghi điểm cao.</li>';
-                        return;
-                    }
-
-                    topScores.forEach((item, index) => {
-                        const li = document.createElement('li');
-                        const rank = index + 1;
-                        li.innerHTML = `<span><strong>#${rank}</strong> ${item.name}</span><span>${item.score}</span>`;
-                        top10List.appendChild(li);
-                    });
-                } catch (e) {
-                     top10List.innerHTML = '<li>Lỗi khi tải bảng xếp hạng.</li>';
-                     console.error("Lỗi khi tải bảng xếp hạng:", e);
-                }
-            }
             
-            // --- GỌI HÀM BAN ĐẦU ---
-            displayTop10Online(); 
+            // --- KHỞI TẠO BAN ĐẦU ---
+            displayTop10Online();
             displayTopStats();
-            trackUserPresence(); // Gửi tên người chơi hiện tại (nếu đã ghi danh) lên Firebase
+            // Hàm updateHighestScoreDisplay đã được loại bỏ và thay thế bằng logic trực tiếp trong saveTopScoreOnline/tải điểm ban đầu.
         });
+
+        // --- HÀM THÊM: Tạo hiệu ứng mưa (Chỉ chạy một lần khi tải trang) ---
+        (function createRain() {
+            const rainContainer = document.querySelector('.rain-container');
+            const density = 80; // Số lượng hạt mưa
+            
+            for (let i = 0; i < density; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('rain-drop');
+                
+                // Vị trí ngẫu nhiên
+                drop.style.left = `${Math.random() * 100}%`;
+                
+                // Kích thước/Chiều dài ngẫu nhiên
+                drop.style.height = `${Math.random() * 0.8 + 0.3}vh`;
+                
+                // Tốc độ/Thời gian animation ngẫu nhiên
+                drop.style.animationDuration = `${Math.random() * 0.8 + 0.4}s`;
+                
+                // Độ trễ animation ngẫu nhiên
+                drop.style.animationDelay = `${Math.random() * 4}s`;
+                
+                rainContainer.appendChild(drop);
+            }
+        })();
+
     </script>
 </body>
 </html>
