@@ -566,7 +566,7 @@
             let timeLeft = 60;
             const TIME_LIMIT = 60;
             const SCORE_CORRECT = 100;
-            const SCORE_INCORRECT = -100;
+            const SCORE_INCORRECT = -200;
             const SCORE_TIMEOUT = -100;
             const SCORE_HINT = -100;
 
@@ -846,7 +846,7 @@
                     // questionsAnswered KHÔNG TĂNG Ở ĐÂY (đã tăng trong setRandomCaptcha)
                     consecutiveCorrects++;
                     
-                    const timeBonus = timeLeft; 
+                    const timeBonus = timeLeft * 3; 
                     const streakBonus = consecutiveCorrects * 5; 
                     const totalScoreChange = SCORE_CORRECT + timeBonus + streakBonus;
                     
@@ -973,5 +973,6 @@
     </script>
 </body>
 </html>
+
 
 
