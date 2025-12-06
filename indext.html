@@ -375,7 +375,7 @@
         window.db = db;
 
         // Thư mục chứa ảnh Captcha (PHẢI CÓ)
-        const CAPTCHA_IMAGE_PATH = 'captchas/'; 
+        const CAPTCHA_IMAGE_PATH = ''; 
     </script>
 
     <script>
@@ -866,7 +866,7 @@
                     btnHint.classList.add('hidden'); 
                     
                     if (questionsAnswered < MAX_QUESTIONS) {
-                        setTimeout(setRandomCaptcha, 1000); // CHUYỂN CÂU
+                        setTimeout(setRandomCaptcha, 0); // CHUYỂN CÂU
                     } else {
                         endGame();
                     }
@@ -973,3 +973,4 @@
     </script>
 </body>
 </html>
+
