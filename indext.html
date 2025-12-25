@@ -866,7 +866,7 @@
                     btnHint.classList.add('hidden'); 
                     
                     if (questionsAnswered < MAX_QUESTIONS) {
-                        setTimeout(setRandomCaptcha, 0); // CHUYỂN CÂU
+                        setTimeout(setRandomCaptcha, 3000); // CHUYỂN CÂU
                     } else {
                         endGame();
                     }
@@ -933,7 +933,7 @@
                 btnHint.classList.add('hidden'); 
 
                 if (questionsAnswered < MAX_QUESTIONS) {
-                    setTimeout(setRandomCaptcha, 3000); // Giảm thời gian chờ xuống 3 giây cho thân thiện
+                    setTimeout(setRandomCaptcha, 10000); // Giảm thời gian chờ xuống 3 giây cho thân thiện
                 } else {
                     endGame();
                 }
@@ -973,6 +973,7 @@
     </script>
 </body>
 </html>
+
 
 
 
