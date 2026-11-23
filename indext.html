@@ -431,7 +431,7 @@
     </div>
 
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V1.5.0 (AUTO MATCHMAKING + DUEL LEADERBOARD + TOP 20 + DAILY)</strong> |
+        <strong>Phiên bản hiện tại: V1.5.1 (PURGE >60,000 + MATCHMAKING FIX)</strong> |
         <span id="next-update-time">Lần cập nhật gần nhất: 24/11/2026.</span>
     </div>
 
@@ -450,6 +450,7 @@
         window.db = db;
 
         const CAPTCHA_IMAGE_PATH = '';
+        const SCORE_DELETE_THRESHOLD = 60000;
 
         function getTodayKey() {
             const now = new Date();
@@ -477,32 +478,82 @@
             }
         }
 
-        // --- 0.2. ĐỌC & HIỂN THỊ TOP 20 TỔNG ---
-        function displayTop20Online() {
+        // --- 0.2. XÓA VĨNH VIỄN MỌI THÔNG TIN ĐIỂM > 60,000 ---
+        async function purgeScoresAbove60000() {
+            if (!db) return;
+            const deletes = [];
+
+            try {
+                const topSnap = await db.collection('top_scores').get();
+                topSnap.forEach(doc => {
+                    const sc = doc.data()?.score;
+                    if (typeof sc === 'number' && sc > SCORE_DELETE_THRESHOLD) {
+                        deletes.push(doc.ref.delete());
+                    }
+                });
+            } catch (e) {
+                console.warn("Lỗi quét top_scores > 60000:", e);
+            }
+
+            try {
+                const duelSnap = await db.collection('duel_leaderboard').get();
+                duelSnap.forEach(doc => {
+                    const sc = doc.data()?.score;
+                    if (typeof sc === 'number' && sc > SCORE_DELETE_THRESHOLD) {
+                        deletes.push(doc.ref.delete());
+                    }
+                });
+            } catch (e) {
+                console.warn("Lỗi quét duel_leaderboard > 60000:", e);
+            }
+
+            try {
+                const todayKey = getTodayKey();
+                const dailySnap = await db.collection('daily_scores').doc(todayKey).collection('players').get();
+                dailySnap.forEach(doc => {
+                    const sc = doc.data()?.score;
+                    if (typeof sc === 'number' && sc > SCORE_DELETE_THRESHOLD) {
+                        deletes.push(doc.ref.delete());
+                    }
+                });
+            } catch (e) {
+                console.warn("Lỗi quét daily_scores > 60000:", e);
+            }
+
+            if (deletes.length > 0) {
+                await Promise.all(deletes);
+            }
+        }
+
+        // --- 0.3. ĐỌC & HIỂN THỊ TOP 20 TỔNG ---
+        async function displayTop20Online() {
             if (!db) return;
             const top20List = document.getElementById('top20-list');
             top20List.innerHTML = '<li>Đang tải...</li>';
 
+            await purgeScoresAbove60000();
+
             db.collection('top_scores')
                 .orderBy('score', 'desc')
-                .limit(20)
+                .limit(30)
                 .get()
                 .then((snapshot) => {
                     top20List.innerHTML = '';
                     const validDocs = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        if (typeof data.score === 'number' && data.score > 0) {
+                        if (typeof data.score === 'number' && data.score > 0 && data.score <= SCORE_DELETE_THRESHOLD) {
                             validDocs.push(data);
                         }
                     });
 
-                    if (validDocs.length === 0) {
+                    const top20 = validDocs.slice(0, 20);
+                    if (top20.length === 0) {
                         top20List.innerHTML = '<li>Chưa có ai ghi điểm. Hãy là người đầu tiên!</li>';
                         return;
                     }
 
-                    validDocs.forEach((data, index) => {
+                    top20.forEach((data, index) => {
                         const li = document.createElement('li');
                         li.innerHTML = `
                             <span>#${index + 1} - ${data.name}</span>
@@ -517,7 +568,7 @@
                 });
         }
 
-        // --- 0.3. ĐỌC & HIỂN THỊ BẢNG XẾP HẠNG THÁCH ĐẤU ---
+        // --- 0.4. ĐỌC & HIỂN THỊ BẢNG XẾP HẠNG THÁCH ĐẤU ---
         function displayDuelLeaderboard() {
             if (!db) return;
             const duelList = document.getElementById('duel-top10-list');
@@ -526,24 +577,25 @@
 
             db.collection('duel_leaderboard')
                 .orderBy('score', 'desc')
-                .limit(10)
+                .limit(20)
                 .get()
                 .then(snapshot => {
                     duelList.innerHTML = '';
                     const rows = [];
                     snapshot.forEach(doc => {
                         const d = doc.data();
-                        if (typeof d.score === 'number') {
+                        if (typeof d.score === 'number' && d.score <= SCORE_DELETE_THRESHOLD) {
                             rows.push(d);
                         }
                     });
 
-                    if (rows.length === 0) {
+                    const top10 = rows.slice(0, 10);
+                    if (top10.length === 0) {
                         duelList.innerHTML = '<li>Chưa có thành tích thách đấu nào.</li>';
                         return;
                     }
 
-                    rows.forEach((d, idx) => {
+                    top10.forEach((d, idx) => {
                         const li = document.createElement('li');
                         li.innerHTML = `
                             <span>#${idx + 1} - ${d.name}</span>
@@ -558,7 +610,7 @@
                 });
         }
 
-        // --- 0.4. ĐỌC & HIỂN THỊ BẢNG XẾP HẠNG NGÀY ---
+        // --- 0.5. ĐỌC & HIỂN THỊ BẢNG XẾP HẠNG NGÀY ---
         function displayDailyLeaderboard() {
             if (!db) return;
             const todayKey = getTodayKey();
@@ -573,24 +625,25 @@
                 .doc(todayKey)
                 .collection('players')
                 .orderBy('score', 'desc')
-                .limit(10)
+                .limit(20)
                 .get()
                 .then(snapshot => {
                     listEl.innerHTML = '';
                     const items = [];
                     snapshot.forEach(doc => {
                         const d = doc.data();
-                        if (typeof d.score === 'number' && d.score > 0) {
+                        if (typeof d.score === 'number' && d.score > 0 && d.score <= SCORE_DELETE_THRESHOLD) {
                             items.push(d);
                         }
                     });
 
-                    if (items.length === 0) {
+                    const top10 = items.slice(0, 10);
+                    if (top10.length === 0) {
                         listEl.innerHTML = '<li>Chưa có điểm ngày hôm nay.</li>';
                         return;
                     }
 
-                    items.forEach((d, idx) => {
+                    top10.forEach((d, idx) => {
                         const li = document.createElement('li');
                         li.innerHTML = `
                             <span>#${idx + 1} - ${d.name}</span>
@@ -605,21 +658,28 @@
                 });
         }
 
-        function loadUserHighestScore(playerName) {
+        async function loadUserHighestScore(playerName) {
             const highestScoreSpan = document.getElementById('highest-score');
             if (!db || !playerName || playerName === 'Khách') {
                 highestScoreSpan.textContent = '0';
                 return;
             }
-            db.collection('top_scores').doc(playerName).get()
-                .then(doc => {
-                    if (doc.exists && typeof doc.data().score === 'number') {
-                        highestScoreSpan.textContent = doc.data().score.toLocaleString('vi-VN');
-                    } else {
+            try {
+                const ref = db.collection('top_scores').doc(playerName);
+                const doc = await ref.get();
+                if (doc.exists && typeof doc.data().score === 'number') {
+                    if (doc.data().score > SCORE_DELETE_THRESHOLD) {
+                        await ref.delete().catch(() => {});
                         highestScoreSpan.textContent = '0';
+                    } else {
+                        highestScoreSpan.textContent = doc.data().score.toLocaleString('vi-VN');
                     }
-                })
-                .catch(err => console.error("Lỗi tải điểm cao nhất:", err));
+                } else {
+                    highestScoreSpan.textContent = '0';
+                }
+            } catch (err) {
+                console.error("Lỗi tải điểm cao nhất:", err);
+            }
         }
 
         function displayTopStats() {
@@ -917,6 +977,10 @@
 
             async function saveScoresOnline(name, finalScore) {
                 if (!db || !name || name === 'Khách' || finalScore <= 0) return;
+                if (finalScore > SCORE_DELETE_THRESHOLD) {
+                    console.warn(`Điểm ${finalScore} vượt mức ${SCORE_DELETE_THRESHOLD}, không lưu.`);
+                    return;
+                }
 
                 const totalRef = db.collection('top_scores').doc(name);
                 const todayKey = getTodayKey();
@@ -925,7 +989,7 @@
                 try {
                     const [totalDoc, dailyDoc] = await Promise.all([totalRef.get(), dailyRef.get()]);
 
-                    const currentTotalBest = totalDoc.exists && typeof totalDoc.data().score === 'number'
+                    const currentTotalBest = totalDoc.exists && typeof totalDoc.data().score === 'number' && totalDoc.data().score <= SCORE_DELETE_THRESHOLD
                         ? totalDoc.data().score : 0;
                     if (finalScore > currentTotalBest) {
                         if (name === playerName) {
@@ -938,7 +1002,7 @@
                         }, { merge: true });
                     }
 
-                    const currentDailyBest = dailyDoc.exists && typeof dailyDoc.data().score === 'number'
+                    const currentDailyBest = dailyDoc.exists && typeof dailyDoc.data().score === 'number' && dailyDoc.data().score <= SCORE_DELETE_THRESHOLD
                         ? dailyDoc.data().score : 0;
                     if (finalScore > currentDailyBest) {
                         await dailyRef.set({
@@ -955,10 +1019,12 @@
 
             async function saveDuelScore(name, duelScore) {
                 if (!db || !name || name === 'Khách') return;
+                if (duelScore > SCORE_DELETE_THRESHOLD) return;
+
                 const duelRef = db.collection('duel_leaderboard').doc(name);
                 try {
                     const doc = await duelRef.get();
-                    const prevBest = doc.exists && typeof doc.data().score === 'number'
+                    const prevBest = doc.exists && typeof doc.data().score === 'number' && doc.data().score <= SCORE_DELETE_THRESHOLD
                         ? doc.data().score : -Infinity;
                     if (duelScore > prevBest) {
                         await duelRef.set({
@@ -1245,7 +1311,7 @@
                     latestRoomData = null;
                 }
 
-                displayTop20Online();
+                await displayTop20Online();
                 displayDuelLeaderboard();
                 displayDailyLeaderboard();
                 displayTopStats();
@@ -1293,7 +1359,10 @@
                     alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi tìm trận thách đấu!');
                     return;
                 }
-                if (!db) return;
+                if (!db) {
+                    alert('Chưa kết nối được Firebase Firestore.');
+                    return;
+                }
 
                 btnFindMatch.disabled = true;
                 gameMode = 'online_duel';
@@ -1312,16 +1381,12 @@
                 feedbackMessage.textContent = 'Đang tìm phòng chờ...';
 
                 try {
-                    const waitingSnap = await db.collection('duel_rooms')
-                        .where('status', '==', 'waiting')
-                        .limit(10)
-                        .get();
-
+                    const roomsSnap = await db.collection('duel_rooms').limit(20).get();
                     let matchedRoomId = null;
 
-                    for (const docSnap of waitingSnap.docs) {
+                    for (const docSnap of roomsSnap.docs) {
                         const d = docSnap.data();
-                        if (d.hostName && d.hostName !== playerName && !d.guestName) {
+                        if (d && d.status === 'waiting' && d.hostName && d.hostName !== playerName && !d.guestName) {
                             const ok = await db.runTransaction(async (tx) => {
                                 const fresh = await tx.get(docSnap.ref);
                                 if (!fresh.exists) return false;
@@ -1369,7 +1434,13 @@
                     }
                 } catch (err) {
                     console.error("Lỗi ghép cặp tự động:", err);
-                    alert("Không thể tìm trận lúc này, vui lòng thử lại.");
+                    cleanupRoomListener();
+                    currentRoomId = null;
+                    duelRole = null;
+                    alert("Không thể tìm trận lúc này, vui lòng thử lại. (Chi tiết lỗi đã ghi trong Console)");
+                    roomBanner.classList.add('hidden');
+                    duelScoreBoard.classList.add('hidden');
+                    soloScoreBoard.classList.remove('hidden');
                     gameScreen.classList.add('hidden');
                     startScreen.classList.remove('hidden');
                 } finally {
