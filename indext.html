@@ -434,7 +434,7 @@
 
     <script>
         // DÁN URL WEB APP GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY:
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzG8RLPLiHSvKd7ycgNenaBv3nhhykLCxP9E1qPcYHnTKKkRPRoCUyF-4WPH-61N8w/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz1f_3Wrmgv20Fdz4Cota8EtOMQ2VRyHhSCGPw75Njs0yabw7LyzWQ4yYrh9GheixulQ/exec';
         const CAPTCHA_IMAGE_PATH = '';
         const SCORE_DELETE_THRESHOLD = 60000;
 
@@ -795,13 +795,12 @@ async function apiPost(payload) {
 
                 if (data.status === 'waiting') {
                     roomBanner.classList.remove('matched');
-                    roomBanner.textContent = `⚔️ Đang chuẩn bị trận đấu ngay cho ${playerName}...`;
-                    setSubmissionLocked(false);
-                    feedbackMessage.textContent = 'Đang khởi tạo câu hỏi...';
+                    roomBanner.textContent = `🔍 Đang chờ người chơi thứ 2 bấm Tìm Trận Thách Đấu...`;
+                    setSubmissionLocked(true);
+                    feedbackMessage.textContent = `Đang ghép cặp tự động cho ${playerName}...`;
                 } else if (data.status === 'playing') {
                     roomBanner.classList.add('matched');
-                    const opp = data.guest_name || 'Đối Thủ';
-                    roomBanner.textContent = `⚔️ Đấu ngay: ${data.host_name} vs ${opp}!`;
+                    roomBanner.textContent = `⚔️ Đã ghép cặp: ${data.host_name} vs ${data.guest_name}!`;
 
                     const idx = Number(data.current_index || 0);
                     const nonce = Number(data.round_nonce || 0);
@@ -820,7 +819,7 @@ async function apiPost(payload) {
                         captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
                         captchaInput.value = '';
                         btnHint.classList.add('hidden');
-                        feedbackMessage.textContent = data.last_event || '⚡ Bắt đầu đấu ngay! Nhập đáp án và nhấn Enter!';
+                        feedbackMessage.textContent = data.last_event || '⚡ Ai nhập đúng trước sẽ ghi +100 điểm!';
                         setSubmissionLocked(false);
                         captchaInput.focus();
                         startTimer();
