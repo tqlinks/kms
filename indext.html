@@ -28,7 +28,7 @@
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
             border: 3px solid #0D47A1;
             width: 100%;
-            max-width: 900px;
+            max-width: 960px;
             margin-bottom: 20px;
             position: relative;
             z-index: 10;
@@ -42,7 +42,7 @@
         }
 
         .main-col {
-            flex: 1 1 400px;
+            flex: 1 1 420px;
             min-width: 280px;
         }
 
@@ -60,7 +60,7 @@
             margin-top: 0;
             border-bottom: 2px solid #BBDEFB;
             padding-bottom: 10px;
-            font-size: 1.3em;
+            font-size: 1.25em;
         }
 
         /* --- 2. BẢNG ĐIỂM & INPUT --- */
@@ -73,12 +73,19 @@
             margin-bottom: 20px;
             font-weight: bold;
             color: #0D47A1;
+            gap: 8px;
         }
 
         .score-item {
             text-align: center;
             flex: 1;
-            padding: 0 5px;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+
+        .score-item.active-turn {
+            background-color: #FFE082;
+            border: 2px solid #FF8F00;
         }
 
         .score-value {
@@ -155,13 +162,23 @@
             background-color: #FFCA28;
             color: #0D47A1;
             box-shadow: 0 4px #FF8F00;
-            font-size: 1.2em;
+            font-size: 1.15em;
         }
         #btn-start:hover:not(:disabled) {
             background-color: #FFECB3;
         }
 
-        .controls button:not(#btn-start),
+        #btn-duel {
+            background-color: #FF7043;
+            color: #FFFFFF;
+            box-shadow: 0 4px #D84315;
+            font-size: 1.1em;
+        }
+        #btn-duel:hover:not(:disabled) {
+            background-color: #FF8A65;
+        }
+
+        .controls button:not(#btn-start):not(#btn-duel),
         #btn-submit, #btn-hint {
             background-color: #90CAF9;
             color: #0D47A1;
@@ -177,32 +194,45 @@
         }
 
         /* --- 4. LIST CHUNG (BXH & THỐNG KÊ) --- */
-        #top10-list, .stats-list, #online-player-list {
+        #top20-list, #daily-top10-list, .stats-list, #online-player-list {
             list-style: none;
             padding: 0;
-            font-size: 1em;
+            font-size: 0.96em;
+            max-height: 460px;
+            overflow-y: auto;
         }
-        #top10-list li, .stats-list li, #online-player-list li {
-            padding: 8px 0;
+        #top20-list li, #daily-top10-list li, .stats-list li, #online-player-list li {
+            padding: 7px 4px;
             border-bottom: 1px dashed #E0E0E0;
             display: flex;
             justify-content: space-between;
         }
-        #top10-list li:first-child {
+        #top20-list li:first-child, #daily-top10-list li:first-child {
             color: #FF8F00;
-            font-size: 1.1em;
+            font-size: 1.05em;
             font-weight: bold;
         }
 
         .stats-list li {
             border-bottom: 1px dotted #BBDEFB;
-            font-size: 0.95em;
+            font-size: 0.92em;
+        }
+
+        .turn-banner {
+            text-align: center;
+            background: #FFF8E1;
+            border: 2px solid #FFB300;
+            color: #E65100;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
 
         /* --- 5. THANH THÔNG BÁO ONLINE & MƯA --- */
         #online-announcement-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 960px;
             margin-top: 10px;
             background-color: #ffe0b2;
             color: #e65100;
@@ -263,10 +293,10 @@
             min-height: 24px;
         }
 
-        /* --- 7. THÔNG TIN PHIÊN BẢN MỚI --- */
+        /* --- 7. THÔNG TIN PHIÊN BẢN --- */
         #version-info {
             width: 100%;
-            max-width: 900px;
+            max-width: 960px;
             margin-top: 20px;
             padding: 15px;
             border-radius: 8px;
@@ -302,18 +332,26 @@
 
                 <div class="controls">
                     <button id="btn-register">📝 Ghi Danh</button>
-                    <button id="btn-start">▶️ Bắt Đầu Trò Chơi</button>
+                    <button id="btn-start">▶️ Bắt Đầu Chơi Đơn</button>
+                    <button id="btn-duel">⚔️ Thách Đấu 2 Người Chơi</button>
                 </div>
 
-                <div id="top10-area" style="margin-top: 30px;">
-                    <h2>🏆 Bảng Xếp Hạng Top 10 (Online)</h2>
-                    <ul id="top10-list">
+                <div id="top20-area" style="margin-top: 25px;">
+                    <h2>🏆 Bảng Xếp Hạng Top 20 Tổng (Max 50,000)</h2>
+                    <ul id="top20-list">
                         <li>Đang tải...</li>
                     </ul>
                 </div>
             </div>
 
             <div class="main-col">
+                <div id="daily-top-area" style="margin-bottom: 25px;">
+                    <h2>📅 Bảng Xếp Hạng Ngày (<span id="daily-date-label"></span>)</h2>
+                    <ul id="daily-top10-list">
+                        <li>Đang tải...</li>
+                    </ul>
+                </div>
+
                 <div id="stats-area">
                     <h2>📊 Thống Kê Captcha (Online)</h2>
                     <div style="display: flex; gap: 20px;">
@@ -335,7 +373,9 @@
         </div>
 
         <div id="game-screen" class="hidden">
-            <div class="score-board">
+            <div id="turn-banner" class="turn-banner hidden"></div>
+
+            <div class="score-board" id="solo-score-board">
                 <div class="score-item">
                     Người chơi: <span id="player-name-game">Khách</span>
                 </div>
@@ -344,6 +384,18 @@
                 </div>
                 <div class="score-item">
                     Câu hỏi: <span id="question-count">0/99 (60s)</span>
+                </div>
+            </div>
+
+            <div class="score-board hidden" id="duel-score-board">
+                <div class="score-item" id="p1-box">
+                    P1 (<span id="p1-name">P1</span>): <span id="p1-score" class="score-value">0</span>
+                </div>
+                <div class="score-item" id="p2-box">
+                    P2 (<span id="p2-name">P2</span>): <span id="p2-score" class="score-value">0</span>
+                </div>
+                <div class="score-item">
+                    Câu hỏi: <span id="duel-question-count">0/20 (60s)</span>
                 </div>
             </div>
 
@@ -372,7 +424,7 @@
     </div>
 
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V1.2.2 (FIXED)</strong> |
+        <strong>Phiên bản hiện tại: V1.3.0 (TOP 20 + DAILY + 1V1 DUEL + ANTI >50K)</strong> |
         <span id="next-update-time">Lần cập nhật gần nhất: 24/11/2026.</span>
     </div>
 
@@ -390,8 +442,16 @@
         const db = firebase.firestore();
         window.db = db;
 
-        // Thư mục chứa ảnh Captcha (ví dụ: 'captchas/' nếu nằm trong thư mục con)
         const CAPTCHA_IMAGE_PATH = '';
+        const MAX_ALLOWED_SCORE = 50000;
+
+        function getTodayKey() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
     </script>
 
     <script>
@@ -411,32 +471,118 @@
             }
         }
 
-        // --- 0.2. CÁC HÀM XỬ LÝ ONLINE VÀ HIỂN THỊ DỮ LIỆU FIREBASE ---
-        function displayTop10Online() {
+        // --- 0.2. XÓA NGƯỜI CHƠI CÓ ĐIỂM > 50,000 ---
+        async function cleanupHighScoresAbove50k() {
             if (!db) return;
-            const top10List = document.getElementById('top10-list');
-            top10List.innerHTML = '<li>Đang tải...</li>';
+            try {
+                const topSnap = await db.collection('top_scores').where('score', '>', MAX_ALLOWED_SCORE).get();
+                const deletePromises = [];
+                topSnap.forEach(doc => deletePromises.push(doc.ref.delete()));
 
-            db.collection('top_scores').orderBy('score', 'desc').limit(10).get()
+                const todayKey = getTodayKey();
+                const dailySnap = await db.collection('daily_scores')
+                    .doc(todayKey)
+                    .collection('players')
+                    .where('score', '>', MAX_ALLOWED_SCORE)
+                    .get();
+                dailySnap.forEach(doc => deletePromises.push(doc.ref.delete()));
+
+                if (deletePromises.length > 0) {
+                    await Promise.all(deletePromises);
+                }
+            } catch (err) {
+                console.warn("Không thể dọn điểm > 50,000 (kiểm tra quyền Firestore):", err);
+            }
+        }
+
+        // --- 0.3. ĐỌC & HIỂN THỊ TOP 20 TỔNG ---
+        async function displayTop20Online() {
+            if (!db) return;
+            const top20List = document.getElementById('top20-list');
+            top20List.innerHTML = '<li>Đang tải...</li>';
+
+            await cleanupHighScoresAbove50k();
+
+            db.collection('top_scores')
+                .where('score', '<=', MAX_ALLOWED_SCORE)
+                .orderBy('score', 'desc')
+                .limit(20)
+                .get()
                 .then((snapshot) => {
-                    top10List.innerHTML = '';
-                    if (snapshot.empty) {
-                        top10List.innerHTML = '<li>Chưa có ai ghi điểm. Hãy là người đầu tiên!</li>';
+                    top20List.innerHTML = '';
+                    const validDocs = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (typeof data.score === 'number' && data.score <= MAX_ALLOWED_SCORE && data.score > 0) {
+                            validDocs.push(data);
+                        }
+                    });
+
+                    if (validDocs.length === 0) {
+                        top20List.innerHTML = '<li>Chưa có ai ghi điểm hợp lệ. Hãy là người đầu tiên!</li>';
                         return;
                     }
-                    snapshot.forEach((doc, index) => {
-                        const data = doc.data();
+
+                    validDocs.forEach((data, index) => {
                         const li = document.createElement('li');
                         li.innerHTML = `
                             <span>#${index + 1} - ${data.name}</span>
-                            <span>${data.score} điểm</span>
+                            <span>${data.score.toLocaleString('vi-VN')} điểm</span>
                         `;
-                        top10List.appendChild(li);
+                        top20List.appendChild(li);
                     });
                 })
                 .catch(error => {
-                    console.error("Lỗi khi tải Top 10:", error);
-                    top10List.innerHTML = '<li>Lỗi tải dữ liệu.</li>';
+                    console.error("Lỗi khi tải Top 20:", error);
+                    top20List.innerHTML = '<li>Lỗi tải dữ liệu.</li>';
+                });
+        }
+
+        // --- 0.4. ĐỌC & HIỂN THỊ BẢNG XẾP HẠNG NGÀY ---
+        function displayDailyLeaderboard() {
+            if (!db) return;
+            const todayKey = getTodayKey();
+            const label = document.getElementById('daily-date-label');
+            const listEl = document.getElementById('daily-top10-list');
+            if (label) label.textContent = todayKey;
+            if (!listEl) return;
+
+            listEl.innerHTML = '<li>Đang tải...</li>';
+
+            db.collection('daily_scores')
+                .doc(todayKey)
+                .collection('players')
+                .where('score', '<=', MAX_ALLOWED_SCORE)
+                .orderBy('score', 'desc')
+                .limit(10)
+                .get()
+                .then(snapshot => {
+                    listEl.innerHTML = '';
+                    const items = [];
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        if (typeof d.score === 'number' && d.score <= MAX_ALLOWED_SCORE && d.score > 0) {
+                            items.push(d);
+                        }
+                    });
+
+                    if (items.length === 0) {
+                        listEl.innerHTML = '<li>Chưa có điểm ngày hôm nay.</li>';
+                        return;
+                    }
+
+                    items.forEach((d, idx) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span>#${idx + 1} - ${d.name}</span>
+                            <span>${d.score.toLocaleString('vi-VN')} điểm</span>
+                        `;
+                        listEl.appendChild(li);
+                    });
+                })
+                .catch(err => {
+                    console.error("Lỗi tải BXH ngày:", err);
+                    listEl.innerHTML = '<li>Lỗi tải BXH ngày.</li>';
                 });
         }
 
@@ -448,8 +594,8 @@
             }
             db.collection('top_scores').doc(playerName).get()
                 .then(doc => {
-                    if (doc.exists && typeof doc.data().score === 'number') {
-                        highestScoreSpan.textContent = doc.data().score;
+                    if (doc.exists && typeof doc.data().score === 'number' && doc.data().score <= MAX_ALLOWED_SCORE) {
+                        highestScoreSpan.textContent = doc.data().score.toLocaleString('vi-VN');
                     } else {
                         highestScoreSpan.textContent = '0';
                     }
@@ -585,6 +731,7 @@
             const startScreen = document.getElementById('start-screen');
             const gameScreen = document.getElementById('game-screen');
             const btnStart = document.getElementById('btn-start');
+            const btnDuel = document.getElementById('btn-duel');
             const btnRegister = document.getElementById('btn-register');
             const btnExit = document.getElementById('btn-exit');
 
@@ -594,20 +741,45 @@
             const captchaImage = document.getElementById('captcha-image');
             const captchaInput = document.getElementById('captcha-input');
             const feedbackMessage = document.getElementById('feedback-message');
+
+            // Solo UI
+            const soloScoreBoard = document.getElementById('solo-score-board');
             const currentScoreSpan = document.getElementById('current-score');
             const questionCountSpan = document.getElementById('question-count');
             const playerNameSpan = document.getElementById('player-name');
             const playerNameGameSpan = document.getElementById('player-name-game');
 
+            // Duel 1v1 UI
+            const duelScoreBoard = document.getElementById('duel-score-board');
+            const turnBanner = document.getElementById('turn-banner');
+            const p1Box = document.getElementById('p1-box');
+            const p2Box = document.getElementById('p2-box');
+            const p1NameSpan = document.getElementById('p1-name');
+            const p2NameSpan = document.getElementById('p2-name');
+            const p1ScoreSpan = document.getElementById('p1-score');
+            const p2ScoreSpan = document.getElementById('p2-score');
+            const duelQuestionCountSpan = document.getElementById('duel-question-count');
+
             // --- Biến Trạng thái Trò chơi ---
+            let gameMode = 'solo'; // 'solo' | 'duel'
             let score = 0;
             let playerName = localStorage.getItem('playerName') || 'Khách';
             let questionsAnswered = 0;
-            const MAX_QUESTIONS = 99;
+            let maxQuestionsCurrent = 99;
+            const MAX_SOLO_QUESTIONS = 99;
+            const MAX_DUEL_QUESTIONS = 20; // 10 câu mỗi người
+
+            // Biến cho chế độ 2 người chơi
+            let duelPlayers = [
+                { name: 'Người chơi 1', score: 0, streak: 0 },
+                { name: 'Người chơi 2', score: 0, streak: 0 }
+            ];
+            let currentTurnIndex = 0; // 0 hoặc 1
+
             let currentCaptcha = null;
             let availableCaptchas = [];
             let consecutiveCorrects = 0;
-            let isSubmitting = false; // Khóa chống gửi đáp án nhiều lần cho 1 câu
+            let isSubmitting = false;
 
             // --- Biến Thời gian & Điểm ---
             let timer = null;
@@ -658,7 +830,8 @@
             // Khởi tạo giao diện ban đầu
             playerNameSpan.textContent = playerName;
             loadUserHighestScore(playerName);
-            displayTop10Online();
+            displayTop20Online();
+            displayDailyLeaderboard();
             displayTopStats();
             if (playerName !== 'Khách') {
                 trackUserPresence(playerName);
@@ -666,7 +839,6 @@
             listenForOnlineAnnouncement();
             displayOnlineUsers();
 
-            // Hàm khóa / mở khóa nút gửi đáp án & ô nhập
             function setSubmissionLocked(locked) {
                 isSubmitting = locked;
                 btnSubmit.disabled = locked;
@@ -674,14 +846,31 @@
                 btnHint.disabled = locked;
             }
 
-            // Hàm cập nhật điểm & số câu hỏi
-            function updateScore(change) {
-                score += change;
-                currentScoreSpan.textContent = score;
-                questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
+            function refreshHud() {
+                if (gameMode === 'solo') {
+                    currentScoreSpan.textContent = score.toLocaleString('vi-VN');
+                    questionCountSpan.textContent = `${questionsAnswered}/${maxQuestionsCurrent} (${timeLeft}s)`;
+                } else {
+                    p1ScoreSpan.textContent = duelPlayers[0].score.toLocaleString('vi-VN');
+                    p2ScoreSpan.textContent = duelPlayers[1].score.toLocaleString('vi-VN');
+                    duelQuestionCountSpan.textContent = `${questionsAnswered}/${maxQuestionsCurrent} (${timeLeft}s)`;
+
+                    const activeP = duelPlayers[currentTurnIndex];
+                    turnBanner.textContent = `⚔️ Lượt của: ${activeP.name} (Người chơi ${currentTurnIndex + 1})`;
+                    p1Box.classList.toggle('active-turn', currentTurnIndex === 0);
+                    p2Box.classList.toggle('active-turn', currentTurnIndex === 1);
+                }
             }
 
-            // Cập nhật thống kê Captcha lên Firestore
+            function applyDeltaScore(delta) {
+                if (gameMode === 'solo') {
+                    score += delta;
+                } else {
+                    duelPlayers[currentTurnIndex].score += delta;
+                }
+                refreshHud();
+            }
+
             async function updateCaptchaStats(file, isCorrect) {
                 if (!db || !file) return;
                 const fieldToIncrement = isCorrect ? 'correct_count' : 'incorrect_count';
@@ -697,37 +886,57 @@
                 }
             }
 
-            // Lưu điểm cao nhất lên Firestore
-            async function saveTopScoreOnline(name, finalScore) {
+            // Lưu điểm cao nhất tổng & điểm cao nhất theo ngày (giới hạn <= 50,000)
+            async function saveScoresOnline(name, finalScore) {
                 if (!db || !name || name === 'Khách' || finalScore <= 0) return;
+                if (finalScore > MAX_ALLOWED_SCORE) {
+                    console.warn(`Điểm ${finalScore} vượt mức ${MAX_ALLOWED_SCORE}, không lưu vào BXH.`);
+                    return;
+                }
 
-                const scoreRef = db.collection('top_scores').doc(name);
+                const totalRef = db.collection('top_scores').doc(name);
+                const todayKey = getTodayKey();
+                const dailyRef = db.collection('daily_scores').doc(todayKey).collection('players').doc(name);
+
                 try {
-                    const doc = await scoreRef.get();
-                    const currentBest = doc.exists && typeof doc.data().score === 'number' ? doc.data().score : 0;
+                    const [totalDoc, dailyDoc] = await Promise.all([totalRef.get(), dailyRef.get()]);
 
-                    if (finalScore > currentBest) {
-                        highestScoreSpan.textContent = finalScore;
-                        await scoreRef.set({
+                    const currentTotalBest = totalDoc.exists && typeof totalDoc.data().score === 'number'
+                        ? totalDoc.data().score : 0;
+                    if (finalScore > currentTotalBest) {
+                        if (name === playerName) {
+                            highestScoreSpan.textContent = finalScore.toLocaleString('vi-VN');
+                        }
+                        await totalRef.set({
                             name: name,
                             score: finalScore,
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
                     }
+
+                    const currentDailyBest = dailyDoc.exists && typeof dailyDoc.data().score === 'number'
+                        ? dailyDoc.data().score : 0;
+                    if (finalScore > currentDailyBest) {
+                        await dailyRef.set({
+                            name: name,
+                            score: finalScore,
+                            date: todayKey,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    }
                 } catch (e) {
-                    console.error("[Firebase]: Lỗi khi lưu điểm cao nhất:", e);
+                    console.error("[Firebase]: Lỗi khi lưu điểm:", e);
                 }
             }
 
-            // Quản lý đồng hồ đếm ngược
             function startTimer() {
                 clearInterval(timer);
                 timeLeft = TIME_LIMIT;
-                questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
+                refreshHud();
 
                 timer = setInterval(() => {
                     timeLeft--;
-                    questionCountSpan.textContent = `${questionsAnswered}/${MAX_QUESTIONS} (${timeLeft}s)`;
+                    refreshHud();
 
                     if (timeLeft <= 0) {
                         clearInterval(timer);
@@ -736,29 +945,41 @@
                 }, 1000);
             }
 
-            // Xử lý khi hết giờ
+            function advanceTurnIfDuel() {
+                if (gameMode === 'duel') {
+                    currentTurnIndex = currentTurnIndex === 0 ? 1 : 0;
+                }
+            }
+
             function handleTimeout() {
                 if (isSubmitting) return;
                 setSubmissionLocked(true);
                 btnHint.classList.add('hidden');
-                consecutiveCorrects = 0;
-                updateScore(SCORE_TIMEOUT);
-                feedbackMessage.textContent = `❌ HẾT GIỜ! Bạn bị trừ ${-SCORE_TIMEOUT} điểm. Chuỗi đúng bị RESET!`;
+
+                if (gameMode === 'solo') {
+                    consecutiveCorrects = 0;
+                } else {
+                    duelPlayers[currentTurnIndex].streak = 0;
+                }
+
+                applyDeltaScore(SCORE_TIMEOUT);
+                feedbackMessage.textContent = `❌ HẾT GIỜ! Trừ ${-SCORE_TIMEOUT} điểm.`;
 
                 if (currentCaptcha) {
                     updateCaptchaStats(currentCaptcha.file, false);
                 }
 
-                if (questionsAnswered < MAX_QUESTIONS && availableCaptchas.length > 0) {
+                advanceTurnIfDuel();
+
+                if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
                     setTimeout(setRandomCaptcha, 1500);
                 } else {
                     setTimeout(endGame, 1500);
                 }
             }
 
-            // Thiết lập Captcha ngẫu nhiên
             function setRandomCaptcha() {
-                if (availableCaptchas.length === 0 || questionsAnswered >= MAX_QUESTIONS) {
+                if (availableCaptchas.length === 0 || questionsAnswered >= maxQuestionsCurrent) {
                     endGame();
                     return;
                 }
@@ -773,22 +994,25 @@
                 captchaInput.value = '';
                 feedbackMessage.textContent = 'Hãy nhập đáp án...';
 
-                if (consecutiveCorrects >= 3) {
+                const activeStreak = gameMode === 'solo'
+                    ? consecutiveCorrects
+                    : duelPlayers[currentTurnIndex].streak;
+
+                if (activeStreak >= 3) {
                     btnHint.classList.remove('hidden');
                 } else {
                     btnHint.classList.add('hidden');
                 }
 
+                refreshHud();
                 setSubmissionLocked(false);
                 captchaInput.focus();
                 startTimer();
             }
 
-            // Xử lý gửi đáp án (chỉ tính 1 lần cho mỗi câu)
             function handleSubmitAnswer() {
                 if (isSubmitting || !currentCaptcha) return;
 
-                // Khóa ngay nút gửi đáp án & ô nhập để tránh bấm đúp/tăng điểm nhiều lần
                 setSubmissionLocked(true);
                 clearInterval(timer);
 
@@ -796,37 +1020,51 @@
                 const correctAnswer = currentCaptcha.answer.trim();
 
                 if (userAnswer === correctAnswer) {
-                    consecutiveCorrects++;
-                    updateScore(SCORE_CORRECT);
-                    feedbackMessage.textContent = `✅ CHÍNH XÁC! +${SCORE_CORRECT} điểm (Chuỗi đúng: ${consecutiveCorrects})`;
+                    if (gameMode === 'solo') {
+                        consecutiveCorrects++;
+                        applyDeltaScore(SCORE_CORRECT);
+                        feedbackMessage.textContent = `✅ CHÍNH XÁC! +${SCORE_CORRECT} điểm (Chuỗi đúng: ${consecutiveCorrects})`;
+                    } else {
+                        const p = duelPlayers[currentTurnIndex];
+                        p.streak++;
+                        applyDeltaScore(SCORE_CORRECT);
+                        feedbackMessage.textContent = `✅ ${p.name} trả lời ĐÚNG! +${SCORE_CORRECT} điểm`;
+                    }
                     updateCaptchaStats(currentCaptcha.file, true);
                 } else {
-                    consecutiveCorrects = 0;
+                    if (gameMode === 'solo') {
+                        consecutiveCorrects = 0;
+                        applyDeltaScore(SCORE_INCORRECT);
+                        feedbackMessage.textContent = `❌ SAI RỒI! Đáp án đúng là: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
+                    } else {
+                        const p = duelPlayers[currentTurnIndex];
+                        p.streak = 0;
+                        applyDeltaScore(SCORE_INCORRECT);
+                        feedbackMessage.textContent = `❌ ${p.name} trả lời SAI! Đáp án: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
+                    }
                     btnHint.classList.add('hidden');
-                    updateScore(SCORE_INCORRECT);
-                    feedbackMessage.textContent = `❌ SAI RỒI! Đáp án đúng là: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
                     updateCaptchaStats(currentCaptcha.file, false);
                 }
 
-                if (questionsAnswered < MAX_QUESTIONS && availableCaptchas.length > 0) {
+                advanceTurnIfDuel();
+
+                if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
                     setTimeout(setRandomCaptcha, 1500);
                 } else {
                     setTimeout(endGame, 1500);
                 }
             }
 
-            // Xem gợi ý đáp án
             btnHint.addEventListener('click', () => {
                 if (isSubmitting || !currentCaptcha) return;
                 btnHint.disabled = true;
                 btnHint.classList.add('hidden');
-                updateScore(SCORE_HINT);
+                applyDeltaScore(SCORE_HINT);
                 feedbackMessage.textContent = `💡 Gợi ý đáp án: "${currentCaptcha.answer}" (${SCORE_HINT} điểm)`;
                 captchaInput.value = currentCaptcha.answer;
                 captchaInput.focus();
             });
 
-            // Sự kiện click nút Gửi Đáp Án & nhấn Enter
             btnSubmit.addEventListener('click', handleSubmitAnswer);
             captchaInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -835,26 +1073,50 @@
                 }
             });
 
-            // Kết thúc trò chơi
             async function endGame() {
                 clearInterval(timer);
                 setSubmissionLocked(true);
-                alert(`Trò chơi kết thúc! Tổng điểm của bạn: ${score}`);
 
-                await saveTopScoreOnline(playerName, score);
-                displayTop10Online();
+                if (gameMode === 'solo') {
+                    alert(`Trò chơi kết thúc! Tổng điểm của bạn: ${score}`);
+                    await saveScoresOnline(playerName, score);
+                } else {
+                    const p1 = duelPlayers[0];
+                    const p2 = duelPlayers[1];
+                    let winnerText = '🤝 Hai người chơi HÒA nhau!';
+                    if (p1.score > p2.score) {
+                        winnerText = `🏆 Người chiến thắng: ${p1.name} (${p1.score} vs ${p2.score})!`;
+                    } else if (p2.score > p1.score) {
+                        winnerText = `🏆 Người chiến thắng: ${p2.name} (${p2.score} vs ${p1.score})!`;
+                    }
+                    alert(`Kết thúc Thách Đấu 1v1!\n${p1.name}: ${p1.score} điểm\n${p2.name}: ${p2.score} điểm\n\n${winnerText}`);
+
+                    await Promise.all([
+                        saveScoresOnline(p1.name, p1.score),
+                        saveScoresOnline(p2.name, p2.score)
+                    ]);
+                }
+
+                await displayTop20Online();
+                displayDailyLeaderboard();
                 displayTopStats();
 
                 gameScreen.classList.add('hidden');
                 startScreen.classList.remove('hidden');
             }
 
-            // Bắt đầu trò chơi
+            // Bắt đầu chơi đơn
             btnStart.addEventListener('click', () => {
                 if (playerName === 'Khách') {
                     alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
                     return;
                 }
+
+                gameMode = 'solo';
+                maxQuestionsCurrent = MAX_SOLO_QUESTIONS;
+                soloScoreBoard.classList.remove('hidden');
+                duelScoreBoard.classList.add('hidden');
+                turnBanner.classList.add('hidden');
 
                 startScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
@@ -864,8 +1126,47 @@
                 questionsAnswered = 0;
                 consecutiveCorrects = 0;
                 availableCaptchas = [...ALL_CAPTCHAS_DATA];
-                updateScore(0);
+                refreshHud();
 
+                setRandomCaptcha();
+            });
+
+            // Bắt đầu thách đấu 2 người chơi
+            btnDuel.addEventListener('click', () => {
+                const defaultP1 = playerName !== 'Khách' ? playerName : 'Người chơi 1';
+                let name1 = prompt("Nhập tên Người Chơi 1:", defaultP1);
+                if (name1 === null) return;
+                name1 = name1.trim().substring(0, 20) || 'Người chơi 1';
+
+                let name2 = prompt("Nhập tên Người Chơi 2:", 'Người chơi 2');
+                if (name2 === null) return;
+                name2 = name2.trim().substring(0, 20) || 'Người chơi 2';
+
+                if (name1 === name2) {
+                    name2 = `${name2} (P2)`;
+                }
+
+                gameMode = 'duel';
+                maxQuestionsCurrent = MAX_DUEL_QUESTIONS;
+                duelPlayers = [
+                    { name: name1, score: 0, streak: 0 },
+                    { name: name2, score: 0, streak: 0 }
+                ];
+                currentTurnIndex = 0;
+                questionsAnswered = 0;
+                availableCaptchas = [...ALL_CAPTCHAS_DATA];
+
+                soloScoreBoard.classList.add('hidden');
+                duelScoreBoard.classList.remove('hidden');
+                turnBanner.classList.remove('hidden');
+
+                p1NameSpan.textContent = name1;
+                p2NameSpan.textContent = name2;
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+
+                refreshHud();
                 setRandomCaptcha();
             });
 
