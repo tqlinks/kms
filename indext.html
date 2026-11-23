@@ -15,7 +15,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: background-color 0.5s ease;
+            overflow-x: hidden;
         }
+
+        body.bg-streak-2 { background-color: #FFF8E1; }
+        body.bg-streak-3 { background-color: #EDE7F6; }
+        body.bg-streak-4 { background-color: #FCE4EC; }
 
         .container {
             background: #FFFFFF;
@@ -29,6 +35,207 @@
             position: relative;
             z-index: 10;
             box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* === HIỆU ỨNG CHUỖI ĐÚNG LIÊN TIẾP (4 CẤP ĐỘ) === */
+        .container.streak-tier-1 {
+            border-color: #FF9800;
+            box-shadow: 0 0 22px rgba(255, 152, 0, 0.55);
+        }
+
+        .container.streak-tier-2 {
+            border-color: #FF3D00;
+            box-shadow: 0 0 32px rgba(255, 61, 0, 0.8), 0 0 60px rgba(255, 193, 7, 0.45);
+            animation: aura-fire 1.4s infinite alternate;
+        }
+
+        .container.streak-tier-3 {
+            border-color: #00E5FF;
+            box-shadow: 0 0 38px rgba(0, 229, 255, 0.9), 0 0 75px rgba(124, 77, 255, 0.7);
+            animation: aura-lightning 0.9s infinite alternate;
+        }
+
+        .container.streak-tier-4 {
+            border-width: 4px;
+            animation: aura-godlike 2s linear infinite;
+        }
+
+        @keyframes aura-fire {
+            from { box-shadow: 0 0 25px rgba(255, 61, 0, 0.75), 0 0 45px rgba(255, 145, 0, 0.4); }
+            to   { box-shadow: 0 0 42px rgba(255, 61, 0, 0.95), 0 0 80px rgba(255, 214, 0, 0.7); }
+        }
+
+        @keyframes aura-lightning {
+            from { box-shadow: 0 0 30px rgba(0, 229, 255, 0.85), 0 0 65px rgba(101, 31, 255, 0.65); }
+            to   { box-shadow: 0 0 50px rgba(0, 229, 255, 1), 0 0 95px rgba(213, 0, 249, 0.85); }
+        }
+
+        @keyframes aura-godlike {
+            0%   { border-color: #FF1744; box-shadow: 0 0 45px #FF1744, 0 0 90px #FF9100; }
+            25%  { border-color: #FFEA00; box-shadow: 0 0 45px #FFEA00, 0 0 90px #00E676; }
+            50%  { border-color: #00E5FF; box-shadow: 0 0 45px #00E5FF, 0 0 90px #2979FF; }
+            75%  { border-color: #D500F9; box-shadow: 0 0 45px #D500F9, 0 0 90px #FF1744; }
+            100% { border-color: #FF1744; box-shadow: 0 0 45px #FF1744, 0 0 90px #FF9100; }
+        }
+
+        /* Rung khung khi đạt combo cao */
+        .shake-light { animation: shake-light 0.35s ease; }
+        .shake-medium { animation: shake-medium 0.45s ease; }
+        .shake-epic { animation: shake-epic 0.6s ease; }
+
+        @keyframes shake-light {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-4px, 2px); }
+            50% { transform: translate(4px, -2px); }
+            75% { transform: translate(-2px, 1px); }
+        }
+
+        @keyframes shake-medium {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-7px, -4px) rotate(-0.6deg); }
+            40% { transform: translate(7px, 4px) rotate(0.6deg); }
+            60% { transform: translate(-5px, 3px) rotate(-0.4deg); }
+            80% { transform: translate(5px, -2px) rotate(0.4deg); }
+        }
+
+        @keyframes shake-epic {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            15% { transform: translate(-10px, -6px) scale(1.015) rotate(-1deg); }
+            30% { transform: translate(10px, 6px) scale(1.02) rotate(1deg); }
+            45% { transform: translate(-8px, 5px) scale(1.015) rotate(-0.8deg); }
+            60% { transform: translate(8px, -5px) scale(1.01) rotate(0.8deg); }
+            75% { transform: translate(-4px, 3px) scale(1.005); }
+        }
+
+        /* Huy hiệu Combo nổi bật */
+        #combo-badge-wrap {
+            display: flex;
+            justify-content: center;
+            min-height: 38px;
+            margin-bottom: 10px;
+        }
+
+        #combo-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: transform 0.2s ease;
+        }
+
+        #combo-badge.pop {
+            animation: combo-pop 0.38s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes combo-pop {
+            0%   { transform: scale(0.5); }
+            60%  { transform: scale(1.22); }
+            100% { transform: scale(1); }
+        }
+
+        .combo-t1 {
+            background: linear-gradient(135deg, #FFB300, #FB8C00);
+            color: #fff;
+            font-size: 1em;
+            box-shadow: 0 3px 10px rgba(251, 140, 0, 0.5);
+        }
+        .combo-t2 {
+            background: linear-gradient(135deg, #FF3D00, #DD2C00);
+            color: #FFFDE7;
+            font-size: 1.15em;
+            box-shadow: 0 4px 16px rgba(255, 61, 0, 0.75);
+        }
+        .combo-t3 {
+            background: linear-gradient(135deg, #00B0FF, #651FFF);
+            color: #FFFFFF;
+            font-size: 1.28em;
+            box-shadow: 0 4px 22px rgba(101, 31, 255, 0.85);
+        }
+        .combo-t4 {
+            background: linear-gradient(90deg, #FF1744, #FF9100, #FFEA00, #00E676, #00E5FF, #D500F9);
+            background-size: 300% 300%;
+            animation: rainbow-bg 2s linear infinite;
+            color: #111;
+            font-size: 1.4em;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+            box-shadow: 0 6px 28px rgba(213, 0, 249, 0.9);
+        }
+
+        @keyframes rainbow-bg {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Thanh chữ chạy ngay trong màn hình chơi khi chuỗi >= 5 */
+        #ingame-streak-marquee {
+            width: 100%;
+            background: linear-gradient(90deg, #B71C1C, #FF6F00, #B71C1C);
+            color: #FFFDE7;
+            border: 2px solid #FFD54F;
+            border-radius: 8px;
+            padding: 7px 0;
+            margin-bottom: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(255, 111, 0, 0.55);
+        }
+
+        #ingame-streak-marquee-text {
+            margin: 0;
+            white-space: nowrap;
+            font-weight: 900;
+            font-size: 1.05em;
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-left 11s linear infinite;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Lớp hạt hiệu ứng & chữ điểm bay */
+        #fx-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .fx-particle {
+            position: fixed;
+            font-weight: bold;
+            user-select: none;
+            will-change: transform, opacity;
+            animation: particle-fly var(--dur, 0.9s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.6) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(1.35) rotate(var(--rot, 180deg));
+            }
+        }
+
+        .fx-float-score {
+            position: fixed;
+            font-weight: 900;
+            font-size: 1.35em;
+            color: #FF6F00;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 2px #fff;
+            animation: score-float-up 1.1s ease-out forwards;
+            white-space: nowrap;
+        }
+
+        @keyframes score-float-up {
+            0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.7); }
+            20%  { opacity: 1; transform: translate(-50%, -8px) scale(1.15); }
+            100% { opacity: 0; transform: translate(-50%, -75px) scale(1); }
         }
 
         #start-screen {
@@ -95,7 +302,13 @@
             background-color: #fff;
             padding: 5px;
             box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
+
+        #captcha-image.img-streak-1 { border-color: #FF9800; box-shadow: 0 0 14px rgba(255, 152, 0, 0.6); }
+        #captcha-image.img-streak-2 { border-color: #FF3D00; box-shadow: 0 0 22px rgba(255, 61, 0, 0.85); }
+        #captcha-image.img-streak-3 { border-color: #00E5FF; box-shadow: 0 0 28px rgba(0, 229, 255, 0.95); }
+        #captcha-image.img-streak-4 { border-color: #D500F9; box-shadow: 0 0 34px rgba(213, 0, 249, 1); }
 
         #captcha-input {
             width: 100%;
@@ -238,13 +451,20 @@
             margin-top: 10px;
             background-color: #ffe0b2;
             color: #e65100;
-            padding: 5px 0;
-            border-radius: 5px;
+            padding: 7px 0;
+            border-radius: 6px;
             border: 1px solid #ffcc80;
             overflow: hidden;
             position: relative;
             z-index: 5;
             text-align: center;
+            transition: background 0.3s, color 0.3s;
+        }
+        #online-announcement-container.streak-hot {
+            background: linear-gradient(90deg, #D50000, #FF6D00, #D50000);
+            color: #FFFDE7;
+            border: 2px solid #FFD54F;
+            box-shadow: 0 0 18px rgba(255, 109, 0, 0.7);
         }
         #online-announcement-text {
             margin: 0;
@@ -252,12 +472,12 @@
             font-weight: bold;
             font-size: 1.1em;
             display: inline-block;
-            animation: scroll-left 15s linear infinite;
+            animation: scroll-left 14s linear infinite;
             padding-left: 100%;
         }
 
         @keyframes scroll-left {
-            0% { transform: translateX(100%); }
+            0% { transform: translateX(0%); }
             100% { transform: translateX(-100%); }
         }
 
@@ -315,8 +535,9 @@
 <body>
 
     <div class="rain-container"></div>
+    <div id="fx-layer"></div>
 
-    <div class="container">
+    <div class="container" id="main-container">
         <h1>MapleStory Captcha Challenge 0796750236</h1>
 
         <div id="start-screen">
@@ -380,6 +601,11 @@
         </div>
 
         <div id="game-screen" class="hidden">
+            <!-- Thanh thông báo chữ chạy trong trận khi chuỗi >= 5 -->
+            <div id="ingame-streak-marquee" class="hidden">
+                <p id="ingame-streak-marquee-text"></p>
+            </div>
+
             <div id="room-banner" class="room-banner hidden"></div>
 
             <div class="score-board" id="solo-score-board">
@@ -404,6 +630,11 @@
                 <div class="score-item">
                     Câu hỏi: <span id="duel-question-count">0/15 (60s)</span>
                 </div>
+            </div>
+
+            <!-- Huy hiệu hiển thị cấp độ Combo -->
+            <div id="combo-badge-wrap">
+                <span id="combo-badge" class="hidden"></span>
             </div>
 
             <div id="game-area">
@@ -431,12 +662,12 @@
     </div>
 
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V2.4.0 (COMPLETE - APPS SCRIPT + INSTANT FIGHT + SPEED & STREAK)</strong> |
+        <strong>Phiên bản hiện tại: V2.5.0 (EPIC COMBO FX + STREAK MARQUEE >= 5)</strong> |
         <span id="next-update-time">Lần cập nhật gần nhất: 24/11/2026.</span>
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcSMrLTIY3Zbuaf3M64kzi05bKakEku6rQsZ-KBpLQe0Ydh3LSg2iZB8bJnUMivWI0Ig/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUNt1lqbsr1kBzIgKEzIt0EZnl_w4M3f7xnWE3-nAKq6EWoQ0khrCFXZdUvNKuL-d4HA/exec';
         const CAPTCHA_IMAGE_PATH = '';
 
         async function apiGet(params) {
@@ -468,6 +699,8 @@
     </script>
 
     <script>
+        let localStreakMarqueeLockUntil = 0;
+
         function createRain() {
             const rainContainer = document.querySelector('.rain-container');
             if (!rainContainer) return;
@@ -535,11 +768,20 @@
                     hiEl.textContent = Number(data.highestScore || 0).toLocaleString('vi-VN');
                 }
 
-                const annEl = document.getElementById('online-announcement-text');
-                if (annEl) {
-                    annEl.textContent = data.notification && data.notification.message
-                        ? `📢 ${data.notification.message}`
-                        : 'Chào mừng đến với MapleStory Captcha Challenge!';
+                // Cập nhật thông báo chung nếu không bị khóa bởi thông báo chuỗi vừa kích hoạt
+                if (Date.now() > localStreakMarqueeLockUntil) {
+                    const annBox = document.getElementById('online-announcement-container');
+                    const annEl = document.getElementById('online-announcement-text');
+                    if (annEl) {
+                        const msg = data.notification && data.notification.message
+                            ? `📢 ${data.notification.message}`
+                            : 'Chào mừng đến với MapleStory Captcha Challenge!';
+                        annEl.textContent = msg;
+                        if (annBox) {
+                            if (msg.includes('CHUỖI')) annBox.classList.add('streak-hot');
+                            else annBox.classList.remove('streak-hot');
+                        }
+                    }
                 }
             } catch (err) {
                 console.warn('Chưa tải được dữ liệu Apps Script:', err.message);
@@ -548,6 +790,14 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             createRain();
+
+            const mainContainer = document.getElementById('main-container');
+            const fxLayer = document.getElementById('fx-layer');
+            const comboBadge = document.getElementById('combo-badge');
+            const ingameMarqueeBox = document.getElementById('ingame-streak-marquee');
+            const ingameMarqueeText = document.getElementById('ingame-streak-marquee-text');
+            const globalMarqueeBox = document.getElementById('online-announcement-container');
+            const globalMarqueeText = document.getElementById('online-announcement-text');
 
             const startScreen = document.getElementById('start-screen');
             const gameScreen = document.getElementById('game-screen');
@@ -640,6 +890,169 @@
                 { file: '94.gif', answer: '틱이계의사' }, { file: '95.gif', answer: '파파픽시아카이' }, { file: '96.gif', answer: '급닌자블록퍼스' },
                 { file: '97.gif', answer: '니카울리카' }, { file: '98.gif', answer: '신스펙터' }, { file: '99.gif', answer: '칼라일혼돈' }
             ];
+
+            // === HỆ THỐNG HIỆU ỨNG CHUỖI & CHỮ CHẠY ===
+            function spawnParticles(streak, totalGain) {
+                if (!fxLayer) return;
+                const rect = captchaImage.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+
+                // Chữ điểm bay lên
+                const floatEl = document.createElement('div');
+                floatEl.className = 'fx-float-score';
+                floatEl.style.left = `${cx}px`;
+                floatEl.style.top = `${cy}px`;
+                floatEl.textContent = streak >= 2
+                    ? `+${totalGain} (COMBO x${streak}!)`
+                    : `+${totalGain}`;
+                fxLayer.appendChild(floatEl);
+                setTimeout(() => floatEl.remove(), 1150);
+
+                if (streak < 2) return;
+
+                let icons = ['✨', '⭐'];
+                let count = 10;
+                let spread = 160;
+
+                if (streak >= 20) {
+                    icons = ['🌈', '🐉', '💎', '👑', '🎆', '🔥', '⚡'];
+                    count = 55;
+                    spread = 420;
+                } else if (streak >= 10) {
+                    icons = ['⚡', '👑', '💠', '✨', '🌟'];
+                    count = 36;
+                    spread = 320;
+                } else if (streak >= 5) {
+                    icons = ['🔥', '💥', '⭐', '✨'];
+                    count = 22;
+                    spread = 240;
+                }
+
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'fx-particle';
+                    p.textContent = icons[Math.floor(Math.random() * icons.length)];
+                    p.style.left = `${cx}px`;
+                    p.style.top = `${cy}px`;
+                    p.style.fontSize = `${14 + Math.random() * (streak >= 10 ? 18 : 10)}px`;
+
+                    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+                    const dist = 60 + Math.random() * spread;
+                    p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+                    p.style.setProperty('--ty', `${Math.sin(angle) * dist - 40}px`);
+                    p.style.setProperty('--rot', `${(Math.random() - 0.5) * 540}deg`);
+                    p.style.setProperty('--dur', `${0.7 + Math.random() * 0.6}s`);
+
+                    fxLayer.appendChild(p);
+                    setTimeout(() => p.remove(), 1350);
+                }
+            }
+
+            function triggerStreakMarquee(streak) {
+                if (streak < 5) return;
+                let title = '🔥 BÙNG CHÁY';
+                if (streak >= 20) title = '🌈🐉 HUYỀN THOẠI MAPLE';
+                else if (streak >= 10) title = '⚡👑 SIÊU THẦN TỐC';
+
+                const text = `${title}: Người chơi [${playerName}] đang đạt CHUỖI ${streak} CÂU ĐÚNG LIÊN TIẾP! Ai cản nổi?!`;
+
+                // 1. Hiện thanh chữ chạy ngay trong màn hình chơi
+                if (ingameMarqueeBox && ingameMarqueeText) {
+                    ingameMarqueeBox.classList.remove('hidden');
+                    ingameMarqueeText.textContent = text;
+                    // Reset animation mượt nếu mới hiện lần đầu
+                    if (streak === 5) {
+                        ingameMarqueeText.style.animation = 'none';
+                        void ingameMarqueeText.offsetWidth;
+                        ingameMarqueeText.style.animation = '';
+                    }
+                }
+
+                // 2. Cập nhật thanh chữ chạy toàn cục bên dưới
+                localStreakMarqueeLockUntil = Date.now() + 18000;
+                if (globalMarqueeBox && globalMarqueeText) {
+                    globalMarqueeBox.classList.add('streak-hot');
+                    globalMarqueeText.textContent = `📢 ${text}`;
+                }
+
+                // 3. Gửi thông báo lên server ở mốc 5 và các mốc bội số của 5 (5, 10, 15, 20...) để mọi người cùng thấy
+                if (streak === 5 || streak % 5 === 0) {
+                    apiPost({ action: 'broadcast_streak', message: text }).catch(() => {});
+                }
+            }
+
+            function resetStreakEffects() {
+                mainContainer.classList.remove(
+                    'streak-tier-1', 'streak-tier-2', 'streak-tier-3', 'streak-tier-4',
+                    'shake-light', 'shake-medium', 'shake-epic'
+                );
+                captchaImage.classList.remove('img-streak-1', 'img-streak-2', 'img-streak-3', 'img-streak-4');
+                document.body.classList.remove('bg-streak-2', 'bg-streak-3', 'bg-streak-4');
+                if (comboBadge) {
+                    comboBadge.className = 'hidden';
+                    comboBadge.textContent = '';
+                }
+                if (ingameMarqueeBox) {
+                    ingameMarqueeBox.classList.add('hidden');
+                }
+            }
+
+            function updateStreakVisuals(streak, totalGain = 0) {
+                if (streak <= 1) {
+                    resetStreakEffects();
+                    if (streak === 1 && totalGain > 0) spawnParticles(1, totalGain);
+                    return;
+                }
+
+                mainContainer.classList.remove(
+                    'streak-tier-1', 'streak-tier-2', 'streak-tier-3', 'streak-tier-4',
+                    'shake-light', 'shake-medium', 'shake-epic'
+                );
+                captchaImage.classList.remove('img-streak-1', 'img-streak-2', 'img-streak-3', 'img-streak-4');
+                document.body.classList.remove('bg-streak-2', 'bg-streak-3', 'bg-streak-4');
+
+                void mainContainer.offsetWidth; // Force reflow để chạy lại hiệu ứng rung
+
+                let badgeClass = 'combo-t1';
+                let badgeLabel = `🔥 COMBO x${streak}`;
+
+                if (streak >= 20) {
+                    mainContainer.classList.add('streak-tier-4', 'shake-epic');
+                    captchaImage.classList.add('img-streak-4');
+                    document.body.classList.add('bg-streak-4');
+                    badgeClass = 'combo-t4';
+                    badgeLabel = `🌈🐉 GODLIKE COMBO x${streak}!`;
+                } else if (streak >= 10) {
+                    mainContainer.classList.add('streak-tier-3', 'shake-medium');
+                    captchaImage.classList.add('img-streak-3');
+                    document.body.classList.add('bg-streak-3');
+                    badgeClass = 'combo-t3';
+                    badgeLabel = `⚡👑 UNSTOPPABLE x${streak}!`;
+                } else if (streak >= 5) {
+                    mainContainer.classList.add('streak-tier-2', 'shake-light');
+                    captchaImage.classList.add('img-streak-2');
+                    document.body.classList.add('bg-streak-2');
+                    badgeClass = 'combo-t2';
+                    badgeLabel = `🔥🔥 ON FIRE x${streak}!`;
+                } else {
+                    mainContainer.classList.add('streak-tier-1');
+                    captchaImage.classList.add('img-streak-1');
+                }
+
+                if (comboBadge) {
+                    comboBadge.className = `${badgeClass} pop`;
+                    comboBadge.textContent = badgeLabel;
+                }
+
+                if (totalGain > 0) {
+                    spawnParticles(streak, totalGain);
+                }
+
+                if (streak >= 5) {
+                    triggerStreakMarquee(streak);
+                }
+            }
 
             function getSpeedBonus() {
                 if (!questionShownAt) return 0;
@@ -767,6 +1180,7 @@
                 setSubmissionLocked(true);
                 btnHint.classList.add('hidden');
                 consecutiveCorrects = 0;
+                resetStreakEffects();
 
                 if (gameMode === 'solo') {
                     updateScore(SCORE_TIMEOUT);
@@ -882,6 +1296,8 @@
                         const totalGain = SCORE_CORRECT + speedBonus + streakBonus;
 
                         updateScore(totalGain);
+                        updateStreakVisuals(consecutiveCorrects, totalGain);
+
                         feedbackMessage.textContent =
                             `✅ ĐÚNG (${elapsedSec}s)! +${SCORE_CORRECT}` +
                             (speedBonus > 0 ? ` + ${speedBonus} nhanh` : '') +
@@ -890,6 +1306,7 @@
                         sendStat(currentCaptcha.file, true);
                     } else {
                         consecutiveCorrects = 0;
+                        resetStreakEffects();
                         btnHint.classList.add('hidden');
                         updateScore(SCORE_INCORRECT);
                         feedbackMessage.textContent = `❌ SAI RỒI! Đáp án đúng là: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
@@ -904,13 +1321,16 @@
                     return;
                 }
 
+                // Chế độ Thách Đấu Online
                 if (userAnswer === correctAnswer) {
                     consecutiveCorrects++;
                     const speedBonus = getSpeedBonus();
                     const streakBonus = getStreakBonus(consecutiveCorrects);
                     const totalGain = SCORE_CORRECT + speedBonus + streakBonus;
 
+                    updateStreakVisuals(consecutiveCorrects, totalGain);
                     sendStat(currentCaptcha.file, true);
+
                     const res = await apiPost({
                         action: 'duel_action',
                         code: currentRoomId,
@@ -923,8 +1343,10 @@
                     if (res && res.room) applyRoomState(res.room);
                 } else {
                     consecutiveCorrects = 0;
+                    resetStreakEffects();
                     btnHint.classList.add('hidden');
                     sendStat(currentCaptcha.file, false);
+
                     const res = await apiPost({
                         action: 'duel_action',
                         code: currentRoomId,
@@ -971,6 +1393,7 @@
                 clearInterval(timer);
                 stopRoomPolling();
                 setSubmissionLocked(true);
+                resetStreakEffects();
 
                 if (gameMode === 'solo') {
                     alert(`Trò chơi kết thúc! Tổng điểm của bạn: ${score}`);
@@ -1033,6 +1456,7 @@
                 maxQuestionsCurrent = MAX_ONLINE_DUEL_QUESTIONS;
                 lastSyncedIndex = -1;
                 consecutiveCorrects = 0;
+                resetStreakEffects();
 
                 soloScoreBoard.classList.add('hidden');
                 duelScoreBoard.classList.remove('hidden');
@@ -1090,6 +1514,7 @@
                 score = 0;
                 questionsAnswered = 0;
                 consecutiveCorrects = 0;
+                resetStreakEffects();
                 availableCaptchas = [...ALL_CAPTCHAS_DATA];
                 refreshHud();
 
