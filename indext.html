@@ -431,12 +431,12 @@
     </div>
 
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V2.3.0 (NO SCORE CAP + SPEED & STREAK BONUS)</strong> |
+        <strong>Phiên bản hiện tại: V2.4.0 (COMPLETE - APPS SCRIPT + INSTANT FIGHT + SPEED & STREAK)</strong> |
         <span id="next-update-time">Lần cập nhật gần nhất: 24/11/2026.</span>
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHhLrB-dqx8KTlalhlJctsjh7XA1zrniZYQ8A8St4o6_8JdGVLaqSRb1EehWc-PdYbsw/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcSMrLTIY3Zbuaf3M64kzi05bKakEku6rQsZ-KBpLQe0Ydh3LSg2iZB8bJnUMivWI0Ig/exec';
         const CAPTCHA_IMAGE_PATH = '';
 
         async function apiGet(params) {
@@ -766,4 +766,366 @@
                 if (isSubmitting) return;
                 setSubmissionLocked(true);
                 btnHint.classList.add('hidden');
-                consecutiveCorrects = 0
+                consecutiveCorrects = 0;
+
+                if (gameMode === 'solo') {
+                    updateScore(SCORE_TIMEOUT);
+                    feedbackMessage.textContent = `❌ HẾT GIỜ! Trừ ${-SCORE_TIMEOUT} điểm.`;
+                    if (currentCaptcha) sendStat(currentCaptcha.file, false);
+
+                    if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
+                        setTimeout(setRandomCaptcha, 1500);
+                    } else {
+                        setTimeout(endGame, 1500);
+                    }
+                } else if (gameMode === 'online_duel' && currentRoomId) {
+                    feedbackMessage.textContent = `⏰ Hết giờ câu này! Đang chuyển câu...`;
+                    if (currentCaptcha) sendStat(currentCaptcha.file, false);
+                    const res = await apiPost({
+                        action: 'duel_action',
+                        code: currentRoomId,
+                        subAction: 'timeout',
+                        player: playerName,
+                        role: duelRole,
+                        maxQuestions: maxQuestionsCurrent
+                    }).catch(() => null);
+                    if (res && res.room) applyRoomState(res.room);
+                }
+            }
+
+            function setRandomCaptcha() {
+                if (availableCaptchas.length === 0 || questionsAnswered >= maxQuestionsCurrent) {
+                    endGame();
+                    return;
+                }
+
+                const randomIndex = Math.floor(Math.random() * availableCaptchas.length);
+                currentCaptcha = availableCaptchas[randomIndex];
+                availableCaptchas.splice(randomIndex, 1);
+                questionsAnswered++;
+
+                captchaImage.src = `${CAPTCHA_IMAGE_PATH}${currentCaptcha.file}`;
+                captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
+                captchaInput.value = '';
+                feedbackMessage.textContent = 'Hãy nhập đáp án...';
+
+                if (consecutiveCorrects >= 3) {
+                    btnHint.classList.remove('hidden');
+                } else {
+                    btnHint.classList.add('hidden');
+                }
+
+                questionShownAt = Date.now();
+                refreshHud();
+                setSubmissionLocked(false);
+                captchaInput.focus();
+                startTimer();
+            }
+
+            function applyRoomState(data) {
+                if (!data) return;
+                latestRoomData = data;
+                refreshHud();
+
+                if (data.status === 'waiting') {
+                    roomBanner.classList.remove('matched');
+                    roomBanner.textContent = `🔍 Đang chờ người chơi thứ 2 bấm Tìm Trận Thách Đấu...`;
+                    setSubmissionLocked(true);
+                    feedbackMessage.textContent = `Đang ghép cặp tự động cho ${playerName}...`;
+                } else if (data.status === 'playing') {
+                    roomBanner.classList.add('matched');
+                    roomBanner.textContent = `⚔️ Đã ghép cặp: ${data.host_name} vs ${data.guest_name}! Đấu ngay!`;
+
+                    const idx = Number(data.current_index || 0);
+                    const nonce = Number(data.round_nonce || 0);
+                    const syncKey = `${idx}_${nonce}`;
+
+                    if (syncKey !== lastSyncedIndex) {
+                        lastSyncedIndex = syncKey;
+                        const qs = data.questions || [];
+                        if (idx >= qs.length || idx >= maxQuestionsCurrent) {
+                            endGame();
+                            return;
+                        }
+                        currentCaptcha = qs[idx];
+                        questionsAnswered = idx + 1;
+                        captchaImage.src = `${CAPTCHA_IMAGE_PATH}${currentCaptcha.file}`;
+                        captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
+                        captchaInput.value = '';
+                        btnHint.classList.add('hidden');
+                        feedbackMessage.textContent = data.last_event || '⚡ Gõ nhanh & giữ chuỗi để nhận thêm điểm!';
+                        questionShownAt = Date.now();
+                        setSubmissionLocked(false);
+                        captchaInput.focus();
+                        startTimer();
+                    }
+                } else if (data.status === 'finished') {
+                    endGame();
+                }
+            }
+
+            async function handleSubmitAnswer() {
+                if (isSubmitting || !currentCaptcha) return;
+
+                setSubmissionLocked(true);
+                clearInterval(timer);
+
+                const userAnswer = captchaInput.value.trim();
+                const correctAnswer = currentCaptcha.answer.trim();
+                const elapsedSec = questionShownAt ? ((Date.now() - questionShownAt) / 1000).toFixed(1) : '0.0';
+
+                if (gameMode === 'solo') {
+                    if (userAnswer === correctAnswer) {
+                        consecutiveCorrects++;
+                        const speedBonus = getSpeedBonus();
+                        const streakBonus = getStreakBonus(consecutiveCorrects);
+                        const totalGain = SCORE_CORRECT + speedBonus + streakBonus;
+
+                        updateScore(totalGain);
+                        feedbackMessage.textContent =
+                            `✅ ĐÚNG (${elapsedSec}s)! +${SCORE_CORRECT}` +
+                            (speedBonus > 0 ? ` + ${speedBonus} nhanh` : '') +
+                            (streakBonus > 0 ? ` + ${streakBonus} chuỗi` : '') +
+                            ` = +${totalGain} điểm (Chuỗi: ${consecutiveCorrects})`;
+                        sendStat(currentCaptcha.file, true);
+                    } else {
+                        consecutiveCorrects = 0;
+                        btnHint.classList.add('hidden');
+                        updateScore(SCORE_INCORRECT);
+                        feedbackMessage.textContent = `❌ SAI RỒI! Đáp án đúng là: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
+                        sendStat(currentCaptcha.file, false);
+                    }
+
+                    if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
+                        setTimeout(setRandomCaptcha, 1500);
+                    } else {
+                        setTimeout(endGame, 1500);
+                    }
+                    return;
+                }
+
+                if (userAnswer === correctAnswer) {
+                    consecutiveCorrects++;
+                    const speedBonus = getSpeedBonus();
+                    const streakBonus = getStreakBonus(consecutiveCorrects);
+                    const totalGain = SCORE_CORRECT + speedBonus + streakBonus;
+
+                    sendStat(currentCaptcha.file, true);
+                    const res = await apiPost({
+                        action: 'duel_action',
+                        code: currentRoomId,
+                        subAction: 'correct',
+                        player: playerName,
+                        role: duelRole,
+                        points: totalGain,
+                        maxQuestions: maxQuestionsCurrent
+                    }).catch(() => null);
+                    if (res && res.room) applyRoomState(res.room);
+                } else {
+                    consecutiveCorrects = 0;
+                    btnHint.classList.add('hidden');
+                    sendStat(currentCaptcha.file, false);
+                    const res = await apiPost({
+                        action: 'duel_action',
+                        code: currentRoomId,
+                        subAction: 'wrong',
+                        player: playerName,
+                        role: duelRole,
+                        maxQuestions: maxQuestionsCurrent
+                    }).catch(() => null);
+                    if (res && res.room) latestRoomData = res.room;
+                    refreshHud();
+                    feedbackMessage.textContent = `❌ SAI RỒI (${SCORE_INCORRECT} điểm)! Câu này vẫn mở, nhập lại hoặc chờ đối thủ...`;
+                    setSubmissionLocked(false);
+                    captchaInput.focus();
+                    startTimer();
+                }
+            }
+
+            btnHint.addEventListener('click', () => {
+                if (isSubmitting || !currentCaptcha || gameMode !== 'solo') return;
+                btnHint.disabled = true;
+                btnHint.classList.add('hidden');
+                updateScore(SCORE_HINT);
+                feedbackMessage.textContent = `💡 Gợi ý đáp án: "${currentCaptcha.answer}" (${SCORE_HINT} điểm)`;
+                captchaInput.value = currentCaptcha.answer;
+                captchaInput.focus();
+            });
+
+            btnSubmit.addEventListener('click', handleSubmitAnswer);
+            captchaInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSubmitAnswer();
+                }
+            });
+
+            function stopRoomPolling() {
+                if (roomPollTimer) {
+                    clearInterval(roomPollTimer);
+                    roomPollTimer = null;
+                }
+            }
+
+            async function endGame() {
+                clearInterval(timer);
+                stopRoomPolling();
+                setSubmissionLocked(true);
+
+                if (gameMode === 'solo') {
+                    alert(`Trò chơi kết thúc! Tổng điểm của bạn: ${score}`);
+                    await saveScoreToScript(playerName, score, false);
+                } else if (gameMode === 'online_duel') {
+                    const d = latestRoomData || {};
+                    const hName = d.host_name || 'Người chơi 1';
+                    const gName = d.guest_name || 'Người chơi 2';
+                    const hScore = Number(d.host_score || 0);
+                    const gScore = Number(d.guest_score || 0);
+
+                    if (d.status === 'finished' || d.guest_name) {
+                        let outcome = '🤝 Hai người chơi HÒA nhau!';
+                        if (hScore > gScore) outcome = `🏆 ${hName} THẮNG (${hScore} vs ${gScore})!`;
+                        else if (gScore > hScore) outcome = `🏆 ${gName} THẮNG (${gScore} vs ${hScore})!`;
+
+                        alert(`Kết thúc Thách Đấu!\n${hName}: ${hScore} điểm\n${gName}: ${gScore} điểm\n\n${outcome}`);
+
+                        const myFinalScore = duelRole === 'host' ? hScore : gScore;
+                        await saveScoreToScript(playerName, myFinalScore, true);
+                    }
+
+                    currentRoomId = null;
+                    duelRole = null;
+                    latestRoomData = null;
+                }
+
+                await refreshDashboard(playerName);
+
+                roomBanner.classList.remove('matched');
+                roomBanner.classList.add('hidden');
+                duelScoreBoard.classList.add('hidden');
+                soloScoreBoard.classList.remove('hidden');
+                gameScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+                checkServerQueue();
+            }
+
+            function startRoomPolling(code) {
+                stopRoomPolling();
+                const poll = async () => {
+                    if (!currentRoomId || gameMode !== 'online_duel') return;
+                    const res = await apiGet({ action: 'room_state', code }).catch(() => null);
+                    if (res && res.ok && res.room) {
+                        applyRoomState(res.room);
+                    }
+                };
+                poll();
+                roomPollTimer = setInterval(poll, 1400);
+            }
+
+            btnFindMatch.addEventListener('click', async () => {
+                if (playerName === 'Khách') {
+                    alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi tìm trận thách đấu!');
+                    return;
+                }
+
+                btnFindMatch.disabled = true;
+                gameMode = 'online_duel';
+                maxQuestionsCurrent = MAX_ONLINE_DUEL_QUESTIONS;
+                lastSyncedIndex = -1;
+                consecutiveCorrects = 0;
+
+                soloScoreBoard.classList.add('hidden');
+                duelScoreBoard.classList.remove('hidden');
+                roomBanner.classList.remove('hidden');
+                roomBanner.classList.remove('matched');
+                roomBanner.textContent = hasOpponentWaiting
+                    ? `⚔️ Phát hiện đối thủ! Đang vào trận đấu ngay...`
+                    : `🔍 Đang tìm đối thủ...`;
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                setSubmissionLocked(true);
+                feedbackMessage.textContent = 'Đang ghép cặp...';
+
+                try {
+                    const questions = pickRandomQuestionSet(MAX_ONLINE_DUEL_QUESTIONS);
+                    const res = await apiPost({ action: 'find_match', name: playerName, questions });
+                    if (!res || !res.ok || !res.room) {
+                        throw new Error(res && res.error ? res.error : 'Không thể ghép cặp');
+                    }
+
+                    currentRoomId = res.room.room_code;
+                    duelRole = res.role;
+                    applyRoomState(res.room);
+                    startRoomPolling(currentRoomId);
+                } catch (err) {
+                    console.error('Lỗi tìm trận:', err);
+                    alert('Không thể tìm trận lúc này: ' + err.message);
+                    roomBanner.classList.add('hidden');
+                    duelScoreBoard.classList.add('hidden');
+                    soloScoreBoard.classList.remove('hidden');
+                    gameScreen.classList.add('hidden');
+                    startScreen.classList.remove('hidden');
+                } finally {
+                    btnFindMatch.disabled = false;
+                }
+            });
+
+            btnStart.addEventListener('click', () => {
+                if (playerName === 'Khách') {
+                    alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi bắt đầu trò chơi!');
+                    return;
+                }
+
+                gameMode = 'solo';
+                maxQuestionsCurrent = MAX_SOLO_QUESTIONS;
+                soloScoreBoard.classList.remove('hidden');
+                duelScoreBoard.classList.add('hidden');
+                roomBanner.classList.add('hidden');
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+
+                playerNameGameSpan.textContent = playerName;
+                score = 0;
+                questionsAnswered = 0;
+                consecutiveCorrects = 0;
+                availableCaptchas = [...ALL_CAPTCHAS_DATA];
+                refreshHud();
+
+                setRandomCaptcha();
+            });
+
+            btnRegister.addEventListener('click', () => {
+                let newName = prompt("Nhập Tên người chơi của bạn (Max 20 ký tự):", playerName === 'Khách' ? '' : playerName);
+                if (newName === null || newName.trim() === '') return;
+                newName = newName.trim().substring(0, 20);
+
+                if (newName !== playerName) {
+                    playerName = newName;
+                    localStorage.setItem('playerName', playerName);
+                    playerNameSpan.textContent = playerName;
+                    alert(`Ghi danh thành công với tên: ${playerName}`);
+                    apiPost({ action: 'ping', name: playerName }).catch(() => {});
+                    refreshDashboard(playerName);
+                    checkServerQueue();
+                }
+            });
+
+            btnExit.addEventListener('click', async () => {
+                if (gameMode === 'online_duel' && currentRoomId && latestRoomData && latestRoomData.status === 'playing') {
+                    await apiPost({
+                        action: 'duel_action',
+                        code: currentRoomId,
+                        subAction: 'exit',
+                        player: playerName,
+                        role: duelRole,
+                        maxQuestions: maxQuestionsCurrent
+                    }).catch(() => {});
+                }
+                endGame();
+            });
+        });
+    </script>
+</body>
+</html>
