@@ -83,11 +83,6 @@
             border-radius: 6px;
         }
 
-        .score-item.active-turn {
-            background-color: #FFE082;
-            border: 2px solid #FF8F00;
-        }
-
         .score-value {
             display: block;
             font-size: 1.2em;
@@ -168,17 +163,21 @@
             background-color: #FFECB3;
         }
 
-        #btn-duel {
+        #btn-create-room {
             background-color: #FF7043;
             color: #FFFFFF;
             box-shadow: 0 4px #D84315;
-            font-size: 1.1em;
-        }
-        #btn-duel:hover:not(:disabled) {
-            background-color: #FF8A65;
+            font-size: 1.05em;
         }
 
-        .controls button:not(#btn-start):not(#btn-duel),
+        #btn-join-room {
+            background-color: #26A69A;
+            color: #FFFFFF;
+            box-shadow: 0 4px #00695C;
+            font-size: 1.05em;
+        }
+
+        .controls button:not(#btn-start):not(#btn-create-room):not(#btn-join-room),
         #btn-submit, #btn-hint {
             background-color: #90CAF9;
             color: #0D47A1;
@@ -193,7 +192,7 @@
             margin-top: 20px;
         }
 
-        /* --- 4. LIST CHUNG (BXH & THỐNG KÊ) --- */
+        /* --- 4. LIST CHUNG & BANNER PHÒNG ONLINE --- */
         #top20-list, #daily-top10-list, .stats-list, #online-player-list {
             list-style: none;
             padding: 0;
@@ -218,12 +217,12 @@
             font-size: 0.92em;
         }
 
-        .turn-banner {
+        .room-banner {
             text-align: center;
-            background: #FFF8E1;
-            border: 2px solid #FFB300;
-            color: #E65100;
-            padding: 8px 12px;
+            background: #E8F5E9;
+            border: 2px solid #2E7D32;
+            color: #1B5E20;
+            padding: 10px 12px;
             border-radius: 8px;
             font-weight: bold;
             margin-bottom: 15px;
@@ -333,7 +332,8 @@
                 <div class="controls">
                     <button id="btn-register">📝 Ghi Danh</button>
                     <button id="btn-start">▶️ Bắt Đầu Chơi Đơn</button>
-                    <button id="btn-duel">⚔️ Thách Đấu 2 Người Chơi</button>
+                    <button id="btn-create-room">🌐 Tạo Phòng Thách Đấu Online</button>
+                    <button id="btn-join-room">🔑 Vào Phòng Bằng Mã</button>
                 </div>
 
                 <div id="top20-area" style="margin-top: 25px;">
@@ -373,7 +373,7 @@
         </div>
 
         <div id="game-screen" class="hidden">
-            <div id="turn-banner" class="turn-banner hidden"></div>
+            <div id="room-banner" class="room-banner hidden"></div>
 
             <div class="score-board" id="solo-score-board">
                 <div class="score-item">
@@ -388,14 +388,14 @@
             </div>
 
             <div class="score-board hidden" id="duel-score-board">
-                <div class="score-item" id="p1-box">
-                    P1 (<span id="p1-name">P1</span>): <span id="p1-score" class="score-value">0</span>
-                </div>
-                <div class="score-item" id="p2-box">
-                    P2 (<span id="p2-name">P2</span>): <span id="p2-score" class="score-value">0</span>
+                <div class="score-item">
+                    Chủ phòng (<span id="host-name">-</span>): <span id="host-score" class="score-value">0</span>
                 </div>
                 <div class="score-item">
-                    Câu hỏi: <span id="duel-question-count">0/20 (60s)</span>
+                    Đối thủ (<span id="guest-name">Đang chờ...</span>): <span id="guest-score" class="score-value">0</span>
+                </div>
+                <div class="score-item">
+                    Câu hỏi: <span id="duel-question-count">0/15 (60s)</span>
                 </div>
             </div>
 
@@ -424,7 +424,7 @@
     </div>
 
     <div id="version-info">
-        <strong>Phiên bản hiện tại: V1.3.0 (TOP 20 + DAILY + 1V1 DUEL + ANTI >50K)</strong> |
+        <strong>Phiên bản hiện tại: V1.4.0 (ONLINE REALTIME DUEL + TOP 20 + DAILY + ANTI >50K)</strong> |
         <span id="next-update-time">Lần cập nhật gần nhất: 24/11/2026.</span>
     </div>
 
@@ -491,7 +491,7 @@
                     await Promise.all(deletePromises);
                 }
             } catch (err) {
-                console.warn("Không thể dọn điểm > 50,000 (kiểm tra quyền Firestore):", err);
+                console.warn("Không thể dọn điểm > 50,000:", err);
             }
         }
 
@@ -731,7 +731,8 @@
             const startScreen = document.getElementById('start-screen');
             const gameScreen = document.getElementById('game-screen');
             const btnStart = document.getElementById('btn-start');
-            const btnDuel = document.getElementById('btn-duel');
+            const btnCreateRoom = document.getElementById('btn-create-room');
+            const btnJoinRoom = document.getElementById('btn-join-room');
             const btnRegister = document.getElementById('btn-register');
             const btnExit = document.getElementById('btn-exit');
 
@@ -749,32 +750,31 @@
             const playerNameSpan = document.getElementById('player-name');
             const playerNameGameSpan = document.getElementById('player-name-game');
 
-            // Duel 1v1 UI
+            // Online Duel UI
+            const roomBanner = document.getElementById('room-banner');
             const duelScoreBoard = document.getElementById('duel-score-board');
-            const turnBanner = document.getElementById('turn-banner');
-            const p1Box = document.getElementById('p1-box');
-            const p2Box = document.getElementById('p2-box');
-            const p1NameSpan = document.getElementById('p1-name');
-            const p2NameSpan = document.getElementById('p2-name');
-            const p1ScoreSpan = document.getElementById('p1-score');
-            const p2ScoreSpan = document.getElementById('p2-score');
+            const hostNameSpan = document.getElementById('host-name');
+            const guestNameSpan = document.getElementById('guest-name');
+            const hostScoreSpan = document.getElementById('host-score');
+            const guestScoreSpan = document.getElementById('guest-score');
             const duelQuestionCountSpan = document.getElementById('duel-question-count');
 
             // --- Biến Trạng thái Trò chơi ---
-            let gameMode = 'solo'; // 'solo' | 'duel'
+            let gameMode = 'solo'; // 'solo' | 'online_duel'
             let score = 0;
             let playerName = localStorage.getItem('playerName') || 'Khách';
             let questionsAnswered = 0;
             let maxQuestionsCurrent = 99;
             const MAX_SOLO_QUESTIONS = 99;
-            const MAX_DUEL_QUESTIONS = 20; // 10 câu mỗi người
+            const MAX_ONLINE_DUEL_QUESTIONS = 15;
 
-            // Biến cho chế độ 2 người chơi
-            let duelPlayers = [
-                { name: 'Người chơi 1', score: 0, streak: 0 },
-                { name: 'Người chơi 2', score: 0, streak: 0 }
-            ];
-            let currentTurnIndex = 0; // 0 hoặc 1
+            // Trạng thái phòng online
+            let currentRoomId = null;
+            let duelRole = null; // 'host' | 'guest'
+            let unsubscribeRoom = null;
+            let roomQuestions = [];
+            let lastSyncedIndex = -1;
+            let latestRoomData = null;
 
             let currentCaptcha = null;
             let availableCaptchas = [];
@@ -827,7 +827,6 @@
                 { file: '97.gif', answer: '니카울리카' }, { file: '98.gif', answer: '신스펙터' }, { file: '99.gif', answer: '칼라일혼돈' }
             ];
 
-            // Khởi tạo giao diện ban đầu
             playerNameSpan.textContent = playerName;
             loadUserHighestScore(playerName);
             displayTop20Online();
@@ -838,6 +837,24 @@
             }
             listenForOnlineAnnouncement();
             displayOnlineUsers();
+
+            function generateRoomCode() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let code = '';
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            }
+
+            function pickRandomQuestionSet(count) {
+                const copy = [...ALL_CAPTCHAS_DATA];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy.slice(0, count);
+            }
 
             function setSubmissionLocked(locked) {
                 isSubmitting = locked;
@@ -850,24 +867,18 @@
                 if (gameMode === 'solo') {
                     currentScoreSpan.textContent = score.toLocaleString('vi-VN');
                     questionCountSpan.textContent = `${questionsAnswered}/${maxQuestionsCurrent} (${timeLeft}s)`;
-                } else {
-                    p1ScoreSpan.textContent = duelPlayers[0].score.toLocaleString('vi-VN');
-                    p2ScoreSpan.textContent = duelPlayers[1].score.toLocaleString('vi-VN');
-                    duelQuestionCountSpan.textContent = `${questionsAnswered}/${maxQuestionsCurrent} (${timeLeft}s)`;
-
-                    const activeP = duelPlayers[currentTurnIndex];
-                    turnBanner.textContent = `⚔️ Lượt của: ${activeP.name} (Người chơi ${currentTurnIndex + 1})`;
-                    p1Box.classList.toggle('active-turn', currentTurnIndex === 0);
-                    p2Box.classList.toggle('active-turn', currentTurnIndex === 1);
+                } else if (latestRoomData) {
+                    hostNameSpan.textContent = latestRoomData.hostName || '-';
+                    guestNameSpan.textContent = latestRoomData.guestName || 'Đang chờ...';
+                    hostScoreSpan.textContent = (latestRoomData.hostScore || 0).toLocaleString('vi-VN');
+                    guestScoreSpan.textContent = (latestRoomData.guestScore || 0).toLocaleString('vi-VN');
+                    const shownIdx = Math.min((latestRoomData.currentIndex || 0) + 1, maxQuestionsCurrent);
+                    duelQuestionCountSpan.textContent = `${shownIdx}/${maxQuestionsCurrent} (${timeLeft}s)`;
                 }
             }
 
-            function applyDeltaScore(delta) {
-                if (gameMode === 'solo') {
-                    score += delta;
-                } else {
-                    duelPlayers[currentTurnIndex].score += delta;
-                }
+            function updateScore(change) {
+                score += change;
                 refreshHud();
             }
 
@@ -886,7 +897,6 @@
                 }
             }
 
-            // Lưu điểm cao nhất tổng & điểm cao nhất theo ngày (giới hạn <= 50,000)
             async function saveScoresOnline(name, finalScore) {
                 if (!db || !name || name === 'Khách' || finalScore <= 0) return;
                 if (finalScore > MAX_ALLOWED_SCORE) {
@@ -945,36 +955,41 @@
                 }, 1000);
             }
 
-            function advanceTurnIfDuel() {
-                if (gameMode === 'duel') {
-                    currentTurnIndex = currentTurnIndex === 0 ? 1 : 0;
-                }
-            }
-
             function handleTimeout() {
                 if (isSubmitting) return;
                 setSubmissionLocked(true);
                 btnHint.classList.add('hidden');
+                consecutiveCorrects = 0;
 
                 if (gameMode === 'solo') {
-                    consecutiveCorrects = 0;
-                } else {
-                    duelPlayers[currentTurnIndex].streak = 0;
-                }
+                    updateScore(SCORE_TIMEOUT);
+                    feedbackMessage.textContent = `❌ HẾT GIỜ! Trừ ${-SCORE_TIMEOUT} điểm.`;
+                    if (currentCaptcha) updateCaptchaStats(currentCaptcha.file, false);
 
-                applyDeltaScore(SCORE_TIMEOUT);
-                feedbackMessage.textContent = `❌ HẾT GIỜ! Trừ ${-SCORE_TIMEOUT} điểm.`;
+                    if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
+                        setTimeout(setRandomCaptcha, 1500);
+                    } else {
+                        setTimeout(endGame, 1500);
+                    }
+                } else if (gameMode === 'online_duel' && currentRoomId && latestRoomData) {
+                    feedbackMessage.textContent = `⏰ Hết giờ câu này! Chuyển câu tiếp theo...`;
+                    if (currentCaptcha) updateCaptchaStats(currentCaptcha.file, false);
 
-                if (currentCaptcha) {
-                    updateCaptchaStats(currentCaptcha.file, false);
-                }
-
-                advanceTurnIfDuel();
-
-                if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
-                    setTimeout(setRandomCaptcha, 1500);
-                } else {
-                    setTimeout(endGame, 1500);
+                    if (duelRole === 'host') {
+                        const nextIdx = (latestRoomData.currentIndex || 0) + 1;
+                        if (nextIdx >= maxQuestionsCurrent) {
+                            db.collection('duel_rooms').doc(currentRoomId).update({
+                                status: 'finished',
+                                lastEvent: `⏰ Hết giờ! Trận đấu kết thúc.`
+                            }).catch(() => {});
+                        } else {
+                            db.collection('duel_rooms').doc(currentRoomId).update({
+                                currentIndex: nextIdx,
+                                roundNonce: firebase.firestore.FieldValue.increment(1),
+                                lastEvent: `⏰ Hết giờ câu ${nextIdx}! Sang câu ${nextIdx + 1}.`
+                            }).catch(() => {});
+                        }
+                    }
                 }
             }
 
@@ -994,11 +1009,7 @@
                 captchaInput.value = '';
                 feedbackMessage.textContent = 'Hãy nhập đáp án...';
 
-                const activeStreak = gameMode === 'solo'
-                    ? consecutiveCorrects
-                    : duelPlayers[currentTurnIndex].streak;
-
-                if (activeStreak >= 3) {
+                if (consecutiveCorrects >= 3) {
                     btnHint.classList.remove('hidden');
                 } else {
                     btnHint.classList.add('hidden');
@@ -1010,7 +1021,41 @@
                 startTimer();
             }
 
-            function handleSubmitAnswer() {
+            function syncOnlineDuelQuestion(roomData) {
+                const idx = roomData.currentIndex || 0;
+                const nonce = roomData.roundNonce || 0;
+                const syncKey = `${idx}_${nonce}`;
+
+                if (syncKey === lastSyncedIndex) return;
+                lastSyncedIndex = syncKey;
+
+                roomQuestions = roomData.questions || [];
+                if (idx >= roomQuestions.length || idx >= maxQuestionsCurrent) {
+                    endGame();
+                    return;
+                }
+
+                currentCaptcha = roomQuestions[idx];
+                questionsAnswered = idx + 1;
+
+                captchaImage.src = `${CAPTCHA_IMAGE_PATH}${currentCaptcha.file}`;
+                captchaImage.alt = `Captcha: ${currentCaptcha.file}`;
+                captchaInput.value = '';
+                btnHint.classList.add('hidden');
+
+                if (roomData.lastEvent) {
+                    feedbackMessage.textContent = roomData.lastEvent;
+                } else {
+                    feedbackMessage.textContent = '⚡ Ai nhập đúng trước sẽ ghi +100 điểm!';
+                }
+
+                refreshHud();
+                setSubmissionLocked(false);
+                captchaInput.focus();
+                startTimer();
+            }
+
+            async function handleSubmitAnswer() {
                 if (isSubmitting || !currentCaptcha) return;
 
                 setSubmissionLocked(true);
@@ -1019,47 +1064,96 @@
                 const userAnswer = captchaInput.value.trim();
                 const correctAnswer = currentCaptcha.answer.trim();
 
-                if (userAnswer === correctAnswer) {
-                    if (gameMode === 'solo') {
+                if (gameMode === 'solo') {
+                    if (userAnswer === correctAnswer) {
                         consecutiveCorrects++;
-                        applyDeltaScore(SCORE_CORRECT);
+                        updateScore(SCORE_CORRECT);
                         feedbackMessage.textContent = `✅ CHÍNH XÁC! +${SCORE_CORRECT} điểm (Chuỗi đúng: ${consecutiveCorrects})`;
+                        updateCaptchaStats(currentCaptcha.file, true);
                     } else {
-                        const p = duelPlayers[currentTurnIndex];
-                        p.streak++;
-                        applyDeltaScore(SCORE_CORRECT);
-                        feedbackMessage.textContent = `✅ ${p.name} trả lời ĐÚNG! +${SCORE_CORRECT} điểm`;
-                    }
-                    updateCaptchaStats(currentCaptcha.file, true);
-                } else {
-                    if (gameMode === 'solo') {
                         consecutiveCorrects = 0;
-                        applyDeltaScore(SCORE_INCORRECT);
+                        btnHint.classList.add('hidden');
+                        updateScore(SCORE_INCORRECT);
                         feedbackMessage.textContent = `❌ SAI RỒI! Đáp án đúng là: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
-                    } else {
-                        const p = duelPlayers[currentTurnIndex];
-                        p.streak = 0;
-                        applyDeltaScore(SCORE_INCORRECT);
-                        feedbackMessage.textContent = `❌ ${p.name} trả lời SAI! Đáp án: "${correctAnswer}" (${SCORE_INCORRECT} điểm)`;
+                        updateCaptchaStats(currentCaptcha.file, false);
                     }
-                    btnHint.classList.add('hidden');
-                    updateCaptchaStats(currentCaptcha.file, false);
+
+                    if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
+                        setTimeout(setRandomCaptcha, 1500);
+                    } else {
+                        setTimeout(endGame, 1500);
+                    }
+                    return;
                 }
 
-                advanceTurnIfDuel();
+                // --- CHẾ ĐỘ THÁCH ĐẤU ONLINE REALTIME ---
+                if (!currentRoomId || !db) return;
+                const roomRef = db.collection('duel_rooms').doc(currentRoomId);
 
-                if (questionsAnswered < maxQuestionsCurrent && availableCaptchas.length > 0) {
-                    setTimeout(setRandomCaptcha, 1500);
+                if (userAnswer === correctAnswer) {
+                    consecutiveCorrects++;
+                    updateCaptchaStats(currentCaptcha.file, true);
+
+                    try {
+                        await db.runTransaction(async (tx) => {
+                            const snap = await tx.get(roomRef);
+                            if (!snap.exists) return;
+                            const d = snap.data();
+                            if (d.status !== 'playing') return;
+
+                            const activeIdx = d.currentIndex || 0;
+                            const isHost = duelRole === 'host';
+                            const scoreField = isHost ? 'hostScore' : 'guestScore';
+                            const nextScore = (d[scoreField] || 0) + SCORE_CORRECT;
+                            const nextIdx = activeIdx + 1;
+
+                            if (nextIdx >= maxQuestionsCurrent) {
+                                tx.update(roomRef, {
+                                    [scoreField]: nextScore,
+                                    status: 'finished',
+                                    lastEvent: `🏆 ${playerName} ghi +${SCORE_CORRECT} điểm ở câu cuối!`
+                                });
+                            } else {
+                                tx.update(roomRef, {
+                                    [scoreField]: nextScore,
+                                    currentIndex: nextIdx,
+                                    roundNonce: firebase.firestore.FieldValue.increment(1),
+                                    lastEvent: `⚡ ${playerName} trả lời ĐÚNG trước (+${SCORE_CORRECT} điểm)! Sang câu ${nextIdx + 1}.`
+                                });
+                            }
+                        });
+                    } catch (err) {
+                        console.error("Lỗi đồng bộ câu trả lời online:", err);
+                        setSubmissionLocked(false);
+                        startTimer();
+                    }
                 } else {
-                    setTimeout(endGame, 1500);
+                    consecutiveCorrects = 0;
+                    btnHint.classList.add('hidden');
+                    updateCaptchaStats(currentCaptcha.file, false);
+
+                    const scoreField = duelRole === 'host' ? 'hostScore' : 'guestScore';
+                    const currentMyScore = duelRole === 'host'
+                        ? (latestRoomData?.hostScore || 0)
+                        : (latestRoomData?.guestScore || 0);
+
+                    await roomRef.update({
+                        [scoreField]: currentMyScore + SCORE_INCORRECT,
+                        lastEvent: `❌ ${playerName} trả lời SAI (${SCORE_INCORRECT} điểm). Câu này vẫn mở cho người kia!`
+                    }).catch(() => {});
+
+                    feedbackMessage.textContent = `❌ SAI RỒI (${SCORE_INCORRECT} điểm)! Đang chờ đối thủ hoặc nhập lại...`;
+                    setSubmissionLocked(false);
+                    captchaInput.focus();
+                    startTimer();
                 }
             }
 
             btnHint.addEventListener('click', () => {
-                if (isSubmitting || !currentCaptcha) return;
+                if (isSubmitting || !currentCaptcha || gameMode !== 'solo') return;
                 btnHint.disabled = true;
                 btnHint.classList.add('hidden');
-                applyDeltaScore(SCORE_HINT);
+                updateScore(SCORE_HINT);
                 feedbackMessage.textContent = `💡 Gợi ý đáp án: "${currentCaptcha.answer}" (${SCORE_HINT} điểm)`;
                 captchaInput.value = currentCaptcha.answer;
                 captchaInput.focus();
@@ -1073,6 +1167,13 @@
                 }
             });
 
+            function cleanupRoomListener() {
+                if (unsubscribeRoom) {
+                    unsubscribeRoom();
+                    unsubscribeRoom = null;
+                }
+            }
+
             async function endGame() {
                 clearInterval(timer);
                 setSubmissionLocked(true);
@@ -1080,30 +1181,158 @@
                 if (gameMode === 'solo') {
                     alert(`Trò chơi kết thúc! Tổng điểm của bạn: ${score}`);
                     await saveScoresOnline(playerName, score);
-                } else {
-                    const p1 = duelPlayers[0];
-                    const p2 = duelPlayers[1];
-                    let winnerText = '🤝 Hai người chơi HÒA nhau!';
-                    if (p1.score > p2.score) {
-                        winnerText = `🏆 Người chiến thắng: ${p1.name} (${p1.score} vs ${p2.score})!`;
-                    } else if (p2.score > p1.score) {
-                        winnerText = `🏆 Người chiến thắng: ${p2.name} (${p2.score} vs ${p1.score})!`;
-                    }
-                    alert(`Kết thúc Thách Đấu 1v1!\n${p1.name}: ${p1.score} điểm\n${p2.name}: ${p2.score} điểm\n\n${winnerText}`);
+                } else if (gameMode === 'online_duel') {
+                    const d = latestRoomData || {};
+                    const hName = d.hostName || 'Chủ phòng';
+                    const gName = d.guestName || 'Đối thủ';
+                    const hScore = d.hostScore || 0;
+                    const gScore = d.guestScore || 0;
 
-                    await Promise.all([
-                        saveScoresOnline(p1.name, p1.score),
-                        saveScoresOnline(p2.name, p2.score)
-                    ]);
+                    let outcome = '🤝 Hai người chơi HÒA nhau!';
+                    if (hScore > gScore) {
+                        outcome = `🏆 ${hName} THẮNG (${hScore} vs ${gScore})!`;
+                    } else if (gScore > hScore) {
+                        outcome = `🏆 ${gName} THẮNG (${gScore} vs ${hScore})!`;
+                    }
+
+                    alert(`Kết thúc Thách Đấu Online!\n${hName}: ${hScore} điểm\n${gName}: ${gScore} điểm\n\n${outcome}`);
+
+                    const myFinalScore = duelRole === 'host' ? hScore : gScore;
+                    await saveScoresOnline(playerName, myFinalScore);
+                    cleanupRoomListener();
+                    currentRoomId = null;
+                    duelRole = null;
+                    latestRoomData = null;
                 }
 
                 await displayTop20Online();
                 displayDailyLeaderboard();
                 displayTopStats();
 
+                roomBanner.classList.add('hidden');
+                duelScoreBoard.classList.add('hidden');
+                soloScoreBoard.classList.remove('hidden');
                 gameScreen.classList.add('hidden');
                 startScreen.classList.remove('hidden');
             }
+
+            function subscribeToDuelRoom(roomId) {
+                cleanupRoomListener();
+                unsubscribeRoom = db.collection('duel_rooms').doc(roomId).onSnapshot((doc) => {
+                    if (!doc.exists) return;
+                    const data = doc.data();
+                    latestRoomData = data;
+
+                    hostNameSpan.textContent = data.hostName || '-';
+                    guestNameSpan.textContent = data.guestName || 'Đang chờ...';
+                    hostScoreSpan.textContent = (data.hostScore || 0).toLocaleString('vi-VN');
+                    guestScoreSpan.textContent = (data.guestScore || 0).toLocaleString('vi-VN');
+
+                    if (data.status === 'waiting') {
+                        roomBanner.textContent = `🌐 Phòng Online: ${roomId} — Đang chờ đối thủ nhập mã để bắt đầu...`;
+                        setSubmissionLocked(true);
+                        feedbackMessage.textContent = `Chia sẻ mã phòng "${roomId}" cho đối thủ của bạn!`;
+                    } else if (data.status === 'playing') {
+                        roomBanner.textContent = `⚔️ Phòng Online: ${roomId} — Đang thách đấu realtime!`;
+                        syncOnlineDuelQuestion(data);
+                    } else if (data.status === 'finished') {
+                        endGame();
+                    }
+                }, err => {
+                    console.error("Lỗi lắng nghe phòng thách đấu:", err);
+                });
+            }
+
+            // Tạo phòng thách đấu online
+            btnCreateRoom.addEventListener('click', async () => {
+                if (playerName === 'Khách') {
+                    alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi tạo phòng thách đấu!');
+                    return;
+                }
+                if (!db) return;
+
+                const roomCode = generateRoomCode();
+                const questions = pickRandomQuestionSet(MAX_ONLINE_DUEL_QUESTIONS);
+
+                gameMode = 'online_duel';
+                maxQuestionsCurrent = MAX_ONLINE_DUEL_QUESTIONS;
+                currentRoomId = roomCode;
+                duelRole = 'host';
+                lastSyncedIndex = -1;
+
+                soloScoreBoard.classList.add('hidden');
+                duelScoreBoard.classList.remove('hidden');
+                roomBanner.classList.remove('hidden');
+                roomBanner.textContent = `🌐 Phòng Online: ${roomCode} — Đang khởi tạo...`;
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                setSubmissionLocked(true);
+
+                await db.collection('duel_rooms').doc(roomCode).set({
+                    roomCode,
+                    status: 'waiting',
+                    hostName: playerName,
+                    guestName: '',
+                    hostScore: 0,
+                    guestScore: 0,
+                    currentIndex: 0,
+                    roundNonce: 0,
+                    questions,
+                    lastEvent: '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                subscribeToDuelRoom(roomCode);
+            });
+
+            // Vào phòng thách đấu online bằng mã
+            btnJoinRoom.addEventListener('click', async () => {
+                if (playerName === 'Khách') {
+                    alert('Vui lòng nhấn "Ghi Danh" và nhập tên trước khi vào phòng thách đấu!');
+                    return;
+                }
+                if (!db) return;
+
+                let code = prompt("Nhập Mã Phòng Online (6 ký tự):");
+                if (!code) return;
+                code = code.trim().toUpperCase();
+
+                const roomRef = db.collection('duel_rooms').doc(code);
+                const snap = await roomRef.get();
+
+                if (!snap.exists) {
+                    alert("Không tìm thấy phòng với mã này!");
+                    return;
+                }
+
+                const data = snap.data();
+                if (data.status !== 'waiting') {
+                    alert("Phòng này đã bắt đầu hoặc đã kết thúc!");
+                    return;
+                }
+
+                gameMode = 'online_duel';
+                maxQuestionsCurrent = data.questions ? data.questions.length : MAX_ONLINE_DUEL_QUESTIONS;
+                currentRoomId = code;
+                duelRole = 'guest';
+                lastSyncedIndex = -1;
+
+                soloScoreBoard.classList.add('hidden');
+                duelScoreBoard.classList.remove('hidden');
+                roomBanner.classList.remove('hidden');
+
+                startScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+
+                await roomRef.update({
+                    guestName: playerName,
+                    status: 'playing',
+                    lastEvent: `⚔️ ${playerName} đã vào phòng! Trận đấu bắt đầu!`
+                });
+
+                subscribeToDuelRoom(code);
+            });
 
             // Bắt đầu chơi đơn
             btnStart.addEventListener('click', () => {
@@ -1116,7 +1345,7 @@
                 maxQuestionsCurrent = MAX_SOLO_QUESTIONS;
                 soloScoreBoard.classList.remove('hidden');
                 duelScoreBoard.classList.add('hidden');
-                turnBanner.classList.add('hidden');
+                roomBanner.classList.add('hidden');
 
                 startScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
@@ -1128,45 +1357,6 @@
                 availableCaptchas = [...ALL_CAPTCHAS_DATA];
                 refreshHud();
 
-                setRandomCaptcha();
-            });
-
-            // Bắt đầu thách đấu 2 người chơi
-            btnDuel.addEventListener('click', () => {
-                const defaultP1 = playerName !== 'Khách' ? playerName : 'Người chơi 1';
-                let name1 = prompt("Nhập tên Người Chơi 1:", defaultP1);
-                if (name1 === null) return;
-                name1 = name1.trim().substring(0, 20) || 'Người chơi 1';
-
-                let name2 = prompt("Nhập tên Người Chơi 2:", 'Người chơi 2');
-                if (name2 === null) return;
-                name2 = name2.trim().substring(0, 20) || 'Người chơi 2';
-
-                if (name1 === name2) {
-                    name2 = `${name2} (P2)`;
-                }
-
-                gameMode = 'duel';
-                maxQuestionsCurrent = MAX_DUEL_QUESTIONS;
-                duelPlayers = [
-                    { name: name1, score: 0, streak: 0 },
-                    { name: name2, score: 0, streak: 0 }
-                ];
-                currentTurnIndex = 0;
-                questionsAnswered = 0;
-                availableCaptchas = [...ALL_CAPTCHAS_DATA];
-
-                soloScoreBoard.classList.add('hidden');
-                duelScoreBoard.classList.remove('hidden');
-                turnBanner.classList.remove('hidden');
-
-                p1NameSpan.textContent = name1;
-                p2NameSpan.textContent = name2;
-
-                startScreen.classList.add('hidden');
-                gameScreen.classList.remove('hidden');
-
-                refreshHud();
                 setRandomCaptcha();
             });
 
@@ -1191,6 +1381,12 @@
 
             // Thoát game
             btnExit.addEventListener('click', () => {
+                if (gameMode === 'online_duel' && currentRoomId && db) {
+                    db.collection('duel_rooms').doc(currentRoomId).update({
+                        status: 'finished',
+                        lastEvent: `🚪 ${playerName} đã thoát khỏi phòng thách đấu.`
+                    }).catch(() => {});
+                }
                 endGame();
             });
         });
