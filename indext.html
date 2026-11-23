@@ -434,30 +434,44 @@
 
     <script>
         // DÁN URL WEB APP GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY:
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywAByxnIoyN1tzklVueTU8ukrTYanVycyD-B3Gj9UBEQPIxnKS9yika7FOHtjuJYEMMA/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhPe7NPc_DmiWyQE60WvvNZCFnONbZ-OUPeINkH8cuTD5XP42RicssYjmHDNvMTjSh/exec';
         const CAPTCHA_IMAGE_PATH = '';
         const SCORE_DELETE_THRESHOLD = 60000;
 
         async function apiGet(params) {
-            if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith('YOUR_')) {
-                throw new Error('Chưa cấu hình APPS_SCRIPT_URL');
-            }
-            const qs = new URLSearchParams(params).toString();
-            const res = await fetch(`${APPS_SCRIPT_URL}?${qs}`, { method: 'GET' });
-            return await res.json();
-        }
+           if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith('DÁN_LINK')) {
+        throw new Error('Chưa cấu hình APPS_SCRIPT_URL');
+    }
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`${APPS_SCRIPT_URL}?${qs}`, {
+        method: 'GET',
+        redirect: 'follow'
+    });
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        throw new Error('Phản hồi không phải JSON (kiểm tra quyền Anyone của Web App)');
+    }
+}
 
-        async function apiPost(payload) {
-            if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith('YOUR_')) {
-                throw new Error('Chưa cấu hình APPS_SCRIPT_URL');
-            }
-            const res = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            });
-            return await res.json();
-        }
+async function apiPost(payload) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith('DÁN_LINK')) {
+        throw new Error('Chưa cấu hình APPS_SCRIPT_URL');
+    }
+    const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        throw new Error('Phản hồi POST không phải JSON (kiểm tra quyền Anyone của Web App)');
+    }
+}
     </script>
 
     <script>
